@@ -1,3 +1,3 @@
-// book_manager_widget.cpp — 图书管理
-#include "frontend.h"
-using namespace std;
+#include "book_manager_widget.h"
+
+book_manager_widget::book_manager_widget() {}

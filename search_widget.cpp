@@ -1,3 +1,3 @@
-// search_widget.cpp — 图书检索
-#include "frontend.h"
-using namespace std;
+#include "search_widget.h"
+
+search_widget::search_widget() {}

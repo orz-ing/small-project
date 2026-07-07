@@ -1,3 +1,3 @@
-// reservation_widget.cpp — 我的预约
-#include "frontend.h"
-using namespace std;
+#include "reservation_widget.h"
+
+reservation_widget::reservation_widget() {}
