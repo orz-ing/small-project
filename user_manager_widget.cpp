@@ -1,3 +1,3 @@
-#include "user_manager_widget.h"
-
-user_manager_widget::user_manager_widget() {}
+// user_manager_widget.cpp — 用户管理
+#include "frontend.h"
+using namespace std;

@@ -1,42 +1,58 @@
-// category_tree.cpp — 分类树
-#include "backend.h"
-using namespace std;
+﻿#include "backend.h"
+#include <algorithm>
 
-// ===== 构建树 =====
-// 输入: 扁平分类列表（所有 Category 对象）
-void CategoryTree::buildTree(const vector<Category>& categories)
-{
-    // TODO: 遍历 → 建立 parentId → children 映射 → 填充 nodes_
+void CategoryTree::buildTree(const vector<Category>& categories) {
+    nodes_.clear();
+    rootId_ = 0;
+    for (auto& c : categories) {
+        Node n;
+        n.id = c.getId();
+        n.parentId = c.getParentId();
+        n.name = c.getName();
+        n.level = c.getLevel();
+        nodes_[n.id] = n;
+        if (c.getParentId() == 0) rootId_ = c.getId();
+    }
+    // Build children lists
+    for (auto& [id, node] : nodes_) {
+        if (node.parentId > 0 && nodes_.find(node.parentId) != nodes_.end())
+            nodes_[node.parentId].children.push_back(id);
+    }
 }
 
-// ===== 获取直接子分类 =====
-// 输入: 分类 ID
-// 输出: 该分类的所有直接子分类 ID 列表
-vector<int> CategoryTree::getChildren(int categoryId) const
-{
-    // TODO: 从 nodes_[categoryId].children 返回
+vector<int> CategoryTree::getChildren(int categoryId) const {
+    auto it = nodes_.find(categoryId);
+    if (it == nodes_.end()) return {};
+    return it->second.children;
 }
 
-// ===== 获取所有子孙分类 =====
-// 输入: 分类 ID
-// 输出: 该分类下全部子孙分类 ID（递归展开）
-vector<int> CategoryTree::getAllDescendants(int categoryId) const
-{
-    // TODO: DFS/BFS 遍历子树
+vector<int> CategoryTree::getAllDescendants(int categoryId) const {
+    vector<int> result;
+    auto it = nodes_.find(categoryId);
+    if (it == nodes_.end()) return result;
+    for (int childId : it->second.children) {
+        result.push_back(childId);
+        auto sub = getAllDescendants(childId);
+        result.insert(result.end(), sub.begin(), sub.end());
+    }
+    return result;
 }
 
-// ===== 获取分类路径 =====
-// 输入: 分类 ID
-// 输出: 从根到该分类的路径字符串（如 "计算机/编程语言/C++"）
-string CategoryTree::getPath(int categoryId) const
-{
-    // TODO: 回溯 parentId 直到根，拼接路径
+string CategoryTree::getPath(int categoryId) const {
+    string path;
+    int cur = categoryId;
+    while (cur > 0) {
+        auto it = nodes_.find(cur);
+        if (it == nodes_.end()) break;
+        path = path.empty() ? it->second.name : it->second.name + " / " + path;
+        cur = it->second.parentId;
+    }
+    return path;
 }
 
-// ===== 按名称查找 =====
-// 输入: 分类名称
-// 输出: 匹配的分类 ID; -1=未找到
-int CategoryTree::findByName(const string& name) const
-{
-    // TODO: 遍历 nodes_ 匹配名称
+int CategoryTree::findByName(const string& name) const {
+    for (auto& [id, node] : nodes_) {
+        if (node.name == name) return id;
+    }
+    return -1;
 }

@@ -1,43 +1,46 @@
-// reservation_service.cpp — 预约服务
-#include "backend.h"
-using namespace std;
+﻿#include "backend.h"
+#include "utils.h"
 
 ReservationService::ReservationService(ReservationDao* dao, ReservationQueue* q)
     : reserveDao_(dao), queue_(q) {}
 
-// ===== 预约 =====
-// 输入: userId, bookId
-// 输出: 排队位置（从1开始）; -1=预约失败（已有预约/可借库存>0）
-int ReservationService::reserveBook(int userId, int bookId)
-{
-    // TODO: 检查库存 → stock>0 直接走借阅 → 否则 enqueue → insert DB
+Reservation ReservationService::reserveBook(int userId, int bookId, Status& status) {
+    auto existing = reserveDao_->findByUser(userId);
+    for (auto& r : existing) {
+        if (r.getBookId() == bookId && r.getStatus() == "pending") {
+            status = {StatusCode::ERR_RESERVATION_EXISTS, "already reserved"};
+            return Reservation();
+        }
+    }
+    Reservation r;
+    r.setUserId(userId); r.setBookId(bookId);
+    r.setReserveDate(today()); r.setExpireDate(addDays(today(), 2));
+    r.setStatus("pending"); r.setPriority(0);
+    return reserveDao_->insert(r, status);
 }
 
-// ===== 取消预约 =====
-// 输入: reservationId
-// 输出: true=取消成功
-bool ReservationService::cancelReservation(int reservationId)
-{
-    // TODO: reserveDao_->updateStatus(resId, "cancelled") → queue_->cancel()
+Status ReservationService::cancelReservation(int reservationId) {
+    return reserveDao_->updateStatus(reservationId, "cancelled");
 }
 
-// ===== 我的预约 =====
-// 输入: userId
-// 输出: 预约记录列表
-vector<Reservation> ReservationService::getMyReservations(int userId)
-{
-    // TODO: reserveDao_->findByUser(userId)
+vector<Reservation> ReservationService::getMyReservations(int userId) {
+    return reserveDao_->findByUser(userId);
 }
 
-// ===== 归还触发 =====
-// 输入: 刚归还的 bookId
-void ReservationService::processReturn(int bookId)
-{
-    // TODO: queue_->dequeue(bookId) → 通知队首用户 → 更新预约状态 "fulfilled"
+void ReservationService::processReturn(int bookId) {
+    auto pending = reserveDao_->findByBook(bookId);
+    if (!pending.empty()) {
+        for (auto& r : pending) {
+            if (r.getStatus() == "pending") {
+                reserveDao_->updateStatus(r.getId(), "fulfilled");
+                break;
+            }
+        }
+    }
 }
 
-// ===== 超时处理 =====
-void ReservationService::processExpired()
-{
-    // TODO: queue_->processExpired(48) → reserveDao_->updateStatus(..., "expired")
+void ReservationService::processExpired() {
+    auto expired = reserveDao_->findExpired(48);
+    for (auto& r : expired)
+        reserveDao_->updateStatus(r.getId(), "expired");
 }

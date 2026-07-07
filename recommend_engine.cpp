@@ -1,35 +1,70 @@
-// recommend_engine.cpp — 协同过滤推荐引擎
-#include "backend.h"
-using namespace std;
+﻿#include "backend.h"
+#include <algorithm>
+#include <cmath>
 
-// ===== Jaccard 相似度（private）=====
-// 输入: 两个图书 ID 集合
-// 输出: [0,1] 之间的相似度值
-double RecommendEngine::jaccardSimilarity(const set<int>& a, const set<int>& b) const
-{
-    // TODO: |a∩b| / |a∪b|
+double RecommendEngine::jaccardSimilarity(const set<int>& a, const set<int>& b) const {
+    if (a.empty() && b.empty()) return 0.0;
+    set<int> inter, uni;
+    set_intersection(a.begin(), a.end(), b.begin(), b.end(), inserter(inter, inter.begin()));
+    set_union(a.begin(), a.end(), b.begin(), b.end(), inserter(uni, uni.begin()));
+    return (double)inter.size() / (double)uni.size();
 }
 
-// ===== 构建共现矩阵 =====
-// 输入: 全部借阅记录
-void RecommendEngine::buildMatrix(const vector<BorrowRecord>& records)
-{
-    // TODO: 遍历 records → 同一个用户借过的书两两共现次数 +1
+void RecommendEngine::buildMatrix(const vector<BorrowRecord>& records) {
+    userBooks_.clear();
+    cooccurrence_.clear();
+    for (auto& r : records) {
+        int uid = r.getUserId(), bid = r.getBookId();
+        userBooks_[uid].insert(bid);
+    }
+    // Build co-occurrence: for each pair of books borrowed by same user
+    for (auto& [uid, books] : userBooks_) {
+        for (auto it = books.begin(); it != books.end(); ++it) {
+            for (auto jt = next(it); jt != books.end(); ++jt) {
+                cooccurrence_[{min(*it, *jt), max(*it, *jt)}]++;
+            }
+        }
+    }
 }
 
-// ===== 生成推荐 =====
-// 输入: 目标用户ID, 推荐数量, 该用户借阅历史, 全部图书
-// 输出: 推荐图书 ID 列表（按推荐分数降序, 排除已借过的）
 vector<int> RecommendEngine::recommend(int targetUserId, int topN,
-    const vector<BorrowRecord>& userHistory,
-    const vector<Book>& allBooks) const
-{
-    // TODO: 找出相似用户 → 聚合共现矩阵 → 排序 → 取 TopN
+                                       const vector<BorrowRecord>& userHistory,
+                                       const vector<Book>& allBooks) const {
+    set<int> borrowed;
+    for (auto& r : userHistory) borrowed.insert(r.getBookId());
+    
+    // Score each un-borrowed book by similarity to borrowed books
+    map<int, double> scores;
+    for (auto& [uid, books] : userBooks_) {
+        if (uid == targetUserId) continue;
+        double sim = jaccardSimilarity(borrowed, books);
+        if (sim <= 0.0) continue;
+        for (int bid : books) {
+            if (borrowed.find(bid) == borrowed.end())
+                scores[bid] += sim;
+        }
+    }
+    
+    vector<pair<int,double>> sorted(scores.begin(), scores.end());
+    sort(sorted.begin(), sorted.end(), [](auto& a, auto& b){
+        if (a.second != b.second) return a.second > b.second;
+        return a.first < b.first;
+    });
+    
+    vector<int> result;
+    for (int i = 0; i < min(topN, (int)sorted.size()); i++)
+        result.push_back(sorted[i].first);
+    return result;
 }
 
-// ===== 实时更新（新借阅）=====
-// 输入: userId, 新借阅的 bookId
-void RecommendEngine::onBorrow(int userId, int bookId)
-{
-    // TODO: 更新 userBooks_ 和 cooccurrence_
+void RecommendEngine::onBorrow(int userId, int bookId) {
+    userBooks_[userId].insert(bookId);
+    for (auto& [uid, books] : userBooks_) {
+        if (uid == userId) continue;
+        if (books.find(bookId) != books.end()) continue;
+        for (int otherBook : books) {
+            auto key = make_pair(min(bookId, otherBook), max(bookId, otherBook));
+            cooccurrence_[key]++;
+        }
+    }
 }

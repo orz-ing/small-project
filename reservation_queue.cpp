@@ -1,58 +1,106 @@
-// reservation_queue.cpp — FIFO 预约队列（线程安全）
-#include "backend.h"
-using namespace std;
+﻿#include "backend.h"
+#include <chrono>
 
-// ===== 入队 =====
-// 输入: bookId(图书ID), userId(用户ID), priority(0=普通,1=优先)
-// 输出: 排队位置（从1开始）; -1=已存在该用户的预约
-int ReservationQueue::enqueue(int bookId, int userId, int priority)
-{
-    // TODO: 加锁 → 检查重复 → 插入队列 → 返回位置
+int ReservationQueue::enqueue(int bookId, int userId, int priority) {
+    lock_guard<mutex> lock(mtx_);
+    auto& q = queues_[bookId];
+    // Check if already in queue
+    queue<QueueItem> temp;
+    bool exists = false;
+    while (!q.empty()) {
+        auto item = q.front(); q.pop();
+        if (item.userId == userId) exists = true;
+        temp.push(item);
+    }
+    q = temp;
+    if (exists) return -1;
+    
+    QueueItem item;
+    item.userId = userId;
+    item.priority = priority;
+    item.timestamp = chrono::system_clock::to_time_t(chrono::system_clock::now());
+    q.push(item);
+    return (int)q.size();
 }
 
-// ===== 出队（归还触发）=====
-// 输入: bookId
-// 输出: 队首 userId; -1=队列为空
-int ReservationQueue::dequeue(int bookId)
-{
-    // TODO: 加锁 → 弹出队首 → 返回 userId
+int ReservationQueue::dequeue(int bookId) {
+    lock_guard<mutex> lock(mtx_);
+    auto it = queues_.find(bookId);
+    if (it == queues_.end() || it->second.empty()) return -1;
+    
+    // Find highest priority, oldest item (queue is FIFO within priority)
+    // Since we need to reorder, copy to vector, sort, pop best
+    vector<QueueItem> items;
+    while (!it->second.empty()) {
+        items.push_back(it->second.front());
+        it->second.pop();
+    }
+    
+    if (items.empty()) return -1;
+    
+    // Sort: high priority first, then oldest timestamp
+    sort(items.begin(), items.end(), [](auto& a, auto& b) {
+        if (a.priority != b.priority) return a.priority > b.priority;
+        return a.timestamp < b.timestamp;
+    });
+    
+    int userId = items[0].userId;
+    // Push remaining back
+    for (size_t i = 1; i < items.size(); i++)
+        it->second.push(items[i]);
+    
+    return userId;
 }
 
-// ===== 取消预约 =====
-// 输入: bookId, userId
-void ReservationQueue::cancel(int bookId, int userId)
-{
-    // TODO: 加锁 → 从队列中删除该用户
+void ReservationQueue::cancel(int bookId, int userId) {
+    lock_guard<mutex> lock(mtx_);
+    auto it = queues_.find(bookId);
+    if (it == queues_.end()) return;
+    
+    queue<QueueItem> temp;
+    while (!it->second.empty()) {
+        auto item = it->second.front(); it->second.pop();
+        if (item.userId != userId) temp.push(item);
+    }
+    it->second = temp;
 }
 
-// ===== 查询排队位置 =====
-// 输入: bookId, userId
-// 输出: 排队位置（从1开始）; -1=不在队列中
-int ReservationQueue::getPosition(int bookId, int userId) const
-{
-    // TODO: 只读锁 → 遍历队列查找
+int ReservationQueue::getPosition(int bookId, int userId) const {
+    lock_guard<mutex> lock(mtx_);
+    auto it = queues_.find(bookId);
+    if (it == queues_.end()) return -1;
+    
+    int pos = 1;
+    queue<QueueItem> q = it->second;
+    while (!q.empty()) {
+        if (q.front().userId == userId) return pos;
+        q.pop(); pos++;
+    }
+    return -1;
 }
 
-// ===== 超时处理 =====
-// 输入: timeoutHours(超时小时数, 默认48)
-// 输出: (bookId, userId) 已超时的预约列表
-vector<pair<int,int>> ReservationQueue::processExpired(int timeoutHours)
-{
-    // TODO: 加锁 → 遍历所有队列 → 移除超时项 → 返回超时列表
+vector<pair<int,int>> ReservationQueue::processExpired(int timeoutHours) {
+    lock_guard<mutex> lock(mtx_);
+    vector<pair<int,int>> expired;
+    time_t now = chrono::system_clock::to_time_t(chrono::system_clock::now());
+    time_t cutoff = now - timeoutHours * 3600;
+    
+    for (auto& [bookId, q] : queues_) {
+        queue<QueueItem> temp;
+        while (!q.empty()) {
+            auto item = q.front(); q.pop();
+            if (item.timestamp < cutoff)
+                expired.push_back({bookId, item.userId});
+            else
+                temp.push(item);
+        }
+        q = temp;
+    }
+    return expired;
 }
 
-// ===== 队列长度 =====
-// 输入: bookId
-// 输出: 该书的预约队列长度
-int ReservationQueue::size(int bookId) const
-{
-    // TODO
-}
-
-// ===== 查看队首（不弹出）=====
-// 输入: bookId
-// 输出: 队首 userId; -1=队列空
-int ReservationQueue::peekFront(int bookId) const
-{
-    // TODO
+int ReservationQueue::size(int bookId) const {
+    lock_guard<mutex> lock(mtx_);
+    auto it = queues_.find(bookId);
+    return (it == queues_.end()) ? 0 : (int)it->second.size();
 }
