@@ -28,7 +28,7 @@ private slots:
     void onRegisterClicked();
     void showLoginPage();
     void showRegisterPage();
-    //void onReturnToLoginClicked();
+
 private:
     QStackedWidget *m_stack;
     // 登录页控件
@@ -44,6 +44,8 @@ private:
     QComboBox   *m_regRole;        // 读者/管理员
     QPushButton *m_regButton;
     QLabel      *m_regStatus;
+
+    QPushButton *m_togglePasswordBtn; // 密码显示/隐藏按钮
 };
 
 #endif // LOGIN_DIALOG_H
