@@ -9,6 +9,7 @@
 #include "login_dialog.h"
 #include "reader_main_widget.h"
 #include "admin_dashboard.h"
+#include "notification_widget.h"
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -25,19 +26,17 @@ private slots:
     void switchToLogin();
     void switchToReader(const User &user);
     void switchToAdmin(const User &user);
-    void hideNotification();
 
 private:
     void setupUI();
     void setupNotificationBar();
 
-    QStackedWidget *m_pages;
-    login_dialog      *m_loginPage;
-    reader_main_widget *m_readerPage;
-    admin_dashboard   *m_adminPage;
+    QStackedWidget *m_pages=NULL;
+    login_dialog      *m_loginPage=NULL;
+    reader_main_widget *m_readerPage=NULL;
+    AdminDashboard   *m_adminPage=NULL;
 
-    QFrame  *m_notificationBar;
-    QLabel  *m_notificationLabel;
-    QTimer  *m_notifyTimer;
+    NotificationWidget *m_notificationBar;
+
 };
 #endif // MAIN_WINDOW_H
