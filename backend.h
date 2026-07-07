@@ -1,20 +1,20 @@
-/******************************************************************************
- * backend.h — 图书管理系统后端统一头文件（重构版 v2.0）
+﻿/******************************************************************************
+ * backend.h 鈥?鍥句功绠＄悊绯荤粺鍚庣缁熶竴澶存枃浠讹紙閲嶆瀯鐗?v2.0锛?
  *
- * 架构层次（自上而下）：
- *   ApiBridge（单例，前端唯一入口）
- *       ↓
- *   Service 层（事务控制 + 并发 + 定时任务）
- *       ↓
- *   DAO 层（数据库 CRUD + SQLite）
- *       ↔
- *   Algorithm 层（纯函数，无状态，独立可测）
+ * 鏋舵瀯灞傛锛堣嚜涓婅€屼笅锛夛細
+ *   ApiBridge锛堝崟渚嬶紝鍓嶇鍞竴鍏ュ彛锛?
+ *       鈫?
+ *   Service 灞傦紙浜嬪姟鎺у埗 + 骞跺彂 + 瀹氭椂浠诲姟锛?
+ *       鈫?
+ *   DAO 灞傦紙鏁版嵁搴?CRUD + SQLite锛?
+ *       鈫?
+ *   Algorithm 灞傦紙绾嚱鏁帮紝鏃犵姸鎬侊紝鐙珛鍙祴锛?
  ******************************************************************************/
 
 #ifndef BACKEND_H
 #define BACKEND_H
 
-// ========== C++ 标准库 ==========
+// ========== C++ 鏍囧噯搴?==========
 #include <string>
 #include <vector>
 #include <map>
@@ -32,39 +32,39 @@
 using namespace std;
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  全局状态码体系（所有可失败操作的统一返回值）                      ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 鍏ㄥ眬鐘舵€佺爜浣撶郴锛堟墍鏈夊彲澶辫触鎿嶄綔鐨勭粺涓€杩斿洖鍊硷級                      鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
 enum class StatusCode {
     OK = 0,
-    ERR_DB_OPEN,               // 数据库打开失败
-    ERR_DB_EXEC,               // SQL 执行失败
-    ERR_DB_TRANSACTION,        // 事务失败
-    ERR_USER_NOT_FOUND,        // 用户不存在
-    ERR_USER_DISABLED,         // 用户被禁用
-    ERR_USER_EXISTS,           // 用户名已存在
-    ERR_WRONG_PASSWORD,        // 密码错误
-    ERR_BOOK_NOT_FOUND,        // 图书不存在
-    ERR_BOOK_OUT_OF_STOCK,     // 库存不足
-    ERR_BOOK_HAS_BORROW,       // 有未还借阅
-    ERR_BORROW_NOT_FOUND,      // 借阅记录不存在
-    ERR_RENEW_LIMIT,           // 续借已达上限
-    ERR_RENEW_OVERDUE,         // 已逾期不能续借
-    ERR_CREDIT_TOO_LOW,        // 信用分不足
-    ERR_VERSION_CONFLICT,      // 乐观锁冲突
-    ERR_RESERVATION_EXISTS,    // 已有预约
-    ERR_RESERVATION_NOT_FOUND, // 预约不存在
-    ERR_RESERVATION_EXPIRED,   // 预约已过期
-    ERR_CATEGORY_HAS_CHILD,    // 有子分类
-    ERR_CATEGORY_NOT_FOUND,    // 分类不存在
-    ERR_PERMISSION_DENIED,     // 权限不足
-    ERR_FILE_OPEN,             // 文件打开失败
-    ERR_FILE_WRITE,            // 文件写入失败
-    ERR_UNKNOWN                // 未知错误
+    ERR_DB_OPEN,               // 鏁版嵁搴撴墦寮€澶辫触
+    ERR_DB_EXEC,               // SQL 鎵ц澶辫触
+    ERR_DB_TRANSACTION,        // 浜嬪姟澶辫触
+    ERR_USER_NOT_FOUND,        // 鐢ㄦ埛涓嶅瓨鍦?
+    ERR_USER_DISABLED,         // 鐢ㄦ埛琚鐢?
+    ERR_USER_EXISTS,           // 鐢ㄦ埛鍚嶅凡瀛樺湪
+    ERR_WRONG_PASSWORD,        // 瀵嗙爜閿欒
+    ERR_BOOK_NOT_FOUND,        // 鍥句功涓嶅瓨鍦?
+    ERR_BOOK_OUT_OF_STOCK,     // 搴撳瓨涓嶈冻
+    ERR_BOOK_HAS_BORROW,       // 鏈夋湭杩樺€熼槄
+    ERR_BORROW_NOT_FOUND,      // 鍊熼槄璁板綍涓嶅瓨鍦?
+    ERR_RENEW_LIMIT,           // 缁€熷凡杈句笂闄?
+    ERR_RENEW_OVERDUE,         // 宸查€炬湡涓嶈兘缁€?
+    ERR_CREDIT_TOO_LOW,        // 淇＄敤鍒嗕笉瓒?
+    ERR_VERSION_CONFLICT,      // 涔愯閿佸啿绐?
+    ERR_RESERVATION_EXISTS,    // 宸叉湁棰勭害
+    ERR_RESERVATION_NOT_FOUND, // 棰勭害涓嶅瓨鍦?
+    ERR_RESERVATION_EXPIRED,   // 棰勭害宸茶繃鏈?
+    ERR_CATEGORY_HAS_CHILD,    // 鏈夊瓙鍒嗙被
+    ERR_CATEGORY_NOT_FOUND,    // 鍒嗙被涓嶅瓨鍦?
+    ERR_PERMISSION_DENIED,     // 鏉冮檺涓嶈冻
+    ERR_FILE_OPEN,             // 鏂囦欢鎵撳紑澶辫触
+    ERR_FILE_WRITE,            // 鏂囦欢鍐欏叆澶辫触
+    ERR_UNKNOWN                // 鏈煡閿欒
 };
 
-// Status 状态包 — 调用方可 if (!status) 判断并输出 status.msg 给用户
+// Status 鐘舵€佸寘 鈥?璋冪敤鏂瑰彲 if (!status) 鍒ゆ柇骞惰緭鍑?status.msg 缁欑敤鎴?
 struct Status {
     StatusCode code = StatusCode::OK;
     string msg;
@@ -72,56 +72,56 @@ struct Status {
     Status(StatusCode c, string m = "") : code(c), msg(m) {}
     bool ok()            const { return code == StatusCode::OK; }
     operator bool()      const { return code == StatusCode::OK; }
-    string getCodeName() const;   // 返回状态码英文名（用于日志）
+    string getCodeName() const;   // 杩斿洖鐘舵€佺爜鑻辨枃鍚嶏紙鐢ㄤ簬鏃ュ織锛?
 };
 inline Status StatusOK()                                  { return {StatusCode::OK, ""}; }
 inline Status StatusErr(StatusCode c, const string& m)    { return {c, m}; }
 
 // ================================================================
-// 【运行状态标识】
-// 对于可能耗时较长的操作（搜索、借阅事务、批量导入等），
-// 调用方传入一个 bool& done 引用变量，由被调用函数维护：
+// 銆愯繍琛岀姸鎬佹爣璇嗐€?
+// 瀵逛簬鍙兘鑰楁椂杈冮暱鐨勬搷浣滐紙鎼滅储銆佸€熼槄浜嬪姟銆佹壒閲忓鍏ョ瓑锛夛紝
+// 璋冪敤鏂逛紶鍏ヤ竴涓?bool& done 寮曠敤鍙橀噺锛岀敱琚皟鐢ㄥ嚱鏁扮淮鎶わ細
 //
-//   done = false  →  操作正在执行中（调用方可轮询此变量）
-//   done = true   →  操作已结束（成功或失败，配合 Status 判断结果）
+//   done = false  鈫? 鎿嶄綔姝ｅ湪鎵ц涓紙璋冪敤鏂瑰彲杞姝ゅ彉閲忥級
+//   done = true   鈫? 鎿嶄綔宸茬粨鏉燂紙鎴愬姛鎴栧け璐ワ紝閰嶅悎 Status 鍒ゆ柇缁撴灉锛?
 //
-// 示例：
+// 绀轰緥锛?
 //   bool done = false;
 //   auto result = apiBridge.searchBooks("C++", -1, 1, 20, status, done);
-//   while (!done) { QApplication::processEvents(); }  // 前端保持响应
-//   if (status.ok()) { /* 使用 result */ }
+//   while (!done) { QApplication::processEvents(); }  // 鍓嶇淇濇寔鍝嶅簲
+//   if (status.ok()) { /* 浣跨敤 result */ }
 // ================================================================
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  第一部分：数据模型（Model）                                  ║
-// ║  所有数据字段为 private，通过 public 方法访问                   ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 绗竴閮ㄥ垎锛氭暟鎹ā鍨嬶紙Model锛?                                 鈺?
+// 鈺? 鎵€鏈夋暟鎹瓧娈典负 private锛岄€氳繃 public 鏂规硶璁块棶                   鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
 // ----------------------------------------------------------------
-//  M1. User — 用户基类
-//      派生：Reader（读者）/ Admin（管理员）
+//  M1. User 鈥?鐢ㄦ埛鍩虹被
+//      娲剧敓锛歊eader锛堣鑰咃級/ Admin锛堢鐞嗗憳锛?
 // ----------------------------------------------------------------
 class User {
 private:
     int    id_;
-    string username_;          // 唯一，登录账号
-    string passwordHash_;      // SHA-256 哈希，禁止明文
-    string realName_;          // 真实姓名
+    string username_;          // 鍞竴锛岀櫥褰曡处鍙?
+    string passwordHash_;      // SHA-256 鍝堝笇锛岀姝㈡槑鏂?
+    string realName_;          // 鐪熷疄濮撳悕
     string role_;              // "reader" | "admin"
-    int    credit_;            // 信用分，范围 [0, 100]，初始 100
+    int    credit_;            // 淇＄敤鍒嗭紝鑼冨洿 [0, 100]锛屽垵濮?100
     string status_;            // "active" | "disabled"
     string phone_;
     string email_;
     string createTime_;        // "YYYY-MM-DD HH:MM:SS"
 
 public:
-    // —— 构造 ——
+    // 鈥斺€?鏋勯€?鈥斺€?
     User();
     User(const string& username, const string& passwordHash,
          const string& realName, const string& role);
 
-    // —— Getter（只读访问） ——
+    // 鈥斺€?Getter锛堝彧璇昏闂級 鈥斺€?
     int    getId()            const { return id_; }
     string getUsername()      const { return username_; }
     string getPasswordHash()  const { return passwordHash_; }
@@ -133,55 +133,56 @@ public:
     string getEmail()         const { return email_; }
     string getCreateTime()    const { return createTime_; }
 
-    // —— Setter（受控修改） ——
+    // 鈥斺€?Setter锛堝彈鎺т慨鏀癸級 鈥斺€?
     void setId(int id)                  { id_ = id; }
     void setPasswordHash(const string& h) { passwordHash_ = h; }
+    void setUsername(const string& u)       { username_ = u; }
     void setRealName(const string& n)     { realName_ = n; }
     void setPhone(const string& p)        { phone_ = p; }
     void setEmail(const string& e)        { email_ = e; }
     void setCreateTime(const string& t)   { createTime_ = t; }
 
-    // —— 信用分操作 ——
-    // 输入: delta（正数加/负数扣）；输出: 操作后的信用分（自动 clamp 到 [0,100]）
+    // 鈥斺€?淇＄敤鍒嗘搷浣?鈥斺€?
+    // 杈撳叆: delta锛堟鏁板姞/璐熸暟鎵ｏ級锛涜緭鍑? 鎿嶄綔鍚庣殑淇＄敤鍒嗭紙鑷姩 clamp 鍒?[0,100]锛?
     int  adjustCredit(int delta);
     void setCredit(int c)                { credit_ = max(0, min(100, c)); }
 
-    // —— 状态操作 ——
-    // 输入: status("active"/"disabled")；输出: 是否设置成功
+    // 鈥斺€?鐘舵€佹搷浣?鈥斺€?
+    // 杈撳叆: status("active"/"disabled")锛涜緭鍑? 鏄惁璁剧疆鎴愬姛
     bool setStatus(const string& s);
     bool isActive() const { return status_ == "active"; }
     bool isAdmin()  const { return role_ == "admin"; }
 
-    // —— 权限判断 ——
-    // 输出: 信用分 ≥ 60 且账号未禁用 → true
+    // 鈥斺€?鏉冮檺鍒ゆ柇 鈥斺€?
+    // 杈撳嚭: 淇＄敤鍒?鈮?60 涓旇处鍙锋湭绂佺敤 鈫?true
     bool canBorrow() const;
 };
 
 
 // ----------------------------------------------------------------
-//  M2. Admin — 管理员（继承 User）
-//      拥有额外的管理权限
+//  M2. Admin 鈥?绠＄悊鍛橈紙缁ф壙 User锛?
+//      鎷ユ湁棰濆鐨勭鐞嗘潈闄?
 // ----------------------------------------------------------------
 class Admin : public User {
 private:
-    int    adminLevel_;        // 权限级别: 1=普通管理员, 2=超级管理员
-    string department_;        // 所属部门
+    int    adminLevel_;        // 鏉冮檺绾у埆: 1=鏅€氱鐞嗗憳, 2=瓒呯骇绠＄悊鍛?
+    string department_;        // 鎵€灞為儴闂?
 
 public:
     Admin();
     Admin(const string& username, const string& passwordHash,
           const string& realName, int level = 1);
 
-    // —— Getter ——
+    // 鈥斺€?Getter 鈥斺€?
     int    getAdminLevel() const { return adminLevel_; }
     string getDepartment()  const { return department_; }
 
-    // —— Setter ——
+    // 鈥斺€?Setter 鈥斺€?
     void setAdminLevel(int l)   { adminLevel_ = l; }
     void setDepartment(const string& d) { department_ = d; }
 
-    // —— 权限检查 ——
-    // 输出: level>=2 则拥有删除图书/禁用用户等敏感操作权限
+    // 鈥斺€?鏉冮檺妫€鏌?鈥斺€?
+    // 杈撳嚭: level>=2 鍒欐嫢鏈夊垹闄ゅ浘涔?绂佺敤鐢ㄦ埛绛夋晱鎰熸搷浣滄潈闄?
     bool canDeleteBook()   const { return adminLevel_ >= 2; }
     bool canDisableUser()  const { return adminLevel_ >= 2; }
     bool canViewAllLogs()  const { return adminLevel_ >= 2; }
@@ -189,8 +190,8 @@ public:
 
 
 // ----------------------------------------------------------------
-//  M3. Book — 图书类
-//      封装图书库存的增减逻辑，确保数据一致性
+//  M3. Book 鈥?鍥句功绫?
+//      灏佽鍥句功搴撳瓨鐨勫鍑忛€昏緫锛岀‘淇濇暟鎹竴鑷存€?
 // ----------------------------------------------------------------
 class Book {
 private:
@@ -200,18 +201,18 @@ private:
     string author_;
     string publisher_;
     string publishDate_;
-    int    categoryId_;          // 分类 ID，关联 Category
-    int    stock_;               // 当前可借库存（≥ 0）
-    int    totalStock_;          // 总复本数（≥ stock）
-    int    version_;             // 乐观锁版本号
-    string location_;            // 书架位置
-    string description_;         // 简介
-    string coverUrl_;            // 封面图片 URL
+    int    categoryId_;          // 鍒嗙被 ID锛屽叧鑱?Category
+    int    stock_;               // 褰撳墠鍙€熷簱瀛橈紙鈮?0锛?
+    int    totalStock_;          // 鎬诲鏈暟锛堚墺 stock锛?
+    int    version_;             // 涔愯閿佺増鏈彿
+    string location_;            // 涔︽灦浣嶇疆
+    string description_;         // 绠€浠?
+    string coverUrl_;            // 灏侀潰鍥剧墖 URL
 
 public:
     Book();
 
-    // —— Getter ——
+    // 鈥斺€?Getter 鈥斺€?
     int    getId()          const { return id_; }
     string getIsbn()        const { return isbn_; }
     string getTitle()       const { return title_; }
@@ -226,7 +227,7 @@ public:
     string getDescription() const { return description_; }
     string getCoverUrl()    const { return coverUrl_; }
 
-    // —— Setter ——
+    // 鈥斺€?Setter 鈥斺€?
     void setId(int id)                { id_ = id; }
     void setIsbn(const string& s)     { isbn_ = s; }
     void setTitle(const string& t)    { title_ = t; }
@@ -241,20 +242,20 @@ public:
     void setCoverUrl(const string& u) { coverUrl_ = u; }
     void setStock(int s)              { stock_ = s; }
 
-    // —— 库存操作（核心） ——
-    // 输入: delta（+1归还, -1借出）；输出: 操作后的库存量（失败返回 -1）
+    // 鈥斺€?搴撳瓨鎿嶄綔锛堟牳蹇冿級 鈥斺€?
+    // 杈撳叆: delta锛?1褰掕繕, -1鍊熷嚭锛夛紱杈撳嚭: 鎿嶄綔鍚庣殑搴撳瓨閲忥紙澶辫触杩斿洖 -1锛?
     int  adjustStock(int delta);
 
-    // 输出: stock > 0 则可借
+    // 杈撳嚭: stock > 0 鍒欏彲鍊?
     bool isAvailable()   const;
 
-    // 乐观锁版本号递增
+    // 涔愯閿佺増鏈彿閫掑
     void bumpVersion()   { version_++; }
 };
 
 
 // ----------------------------------------------------------------
-//  M4. BorrowRecord — 借阅记录
+//  M4. BorrowRecord 鈥?鍊熼槄璁板綍
 // ----------------------------------------------------------------
 class BorrowRecord {
 private:
@@ -262,15 +263,15 @@ private:
     int    userId_;
     int    bookId_;
     string borrowDate_;       // "YYYY-MM-DD"
-    string dueDate_;          // 应还日期 = borrowDate + 30天
-    string returnDate_;       // 空串 = 未归还
+    string dueDate_;          // 搴旇繕鏃ユ湡 = borrowDate + 30澶?
+    string returnDate_;       // 绌轰覆 = 鏈綊杩?
     string status_;           // "borrowing" | "returned" | "overdue"
-    int    renewCount_;       // 续借次数，上限 2
+    int    renewCount_;       // 缁€熸鏁帮紝涓婇檺 2
 
 public:
     BorrowRecord();
 
-    // —— Getter ——
+    // 鈥斺€?Getter 鈥斺€?
     int    getId()         const { return id_; }
     int    getUserId()     const { return userId_; }
     int    getBookId()     const { return bookId_; }
@@ -280,7 +281,7 @@ public:
     string getStatus()     const { return status_; }
     int    getRenewCount() const { return renewCount_; }
 
-    // —— Setter ——
+    // 鈥斺€?Setter 鈥斺€?
     void setId(int i)                { id_ = i; }
     void setUserId(int u)            { userId_ = u; }
     void setBookId(int b)            { bookId_ = b; }
@@ -289,35 +290,35 @@ public:
     void setReturnDate(const string& d) { returnDate_ = d; }
     void setRenewCount(int r)           { renewCount_ = r; }
 
-    // —— 状态操作 ——
-    // 输入: status("borrowing"/"returned"/"overdue"); 输出: 是否合法
+    // 鈥斺€?鐘舵€佹搷浣?鈥斺€?
+    // 杈撳叆: status("borrowing"/"returned"/"overdue"); 杈撳嚭: 鏄惁鍚堟硶
     bool setStatus(const string& s);
 
-    // 输入: 当前日期("YYYY-MM-DD"); 输出: 是否已逾期
+    // 杈撳叆: 褰撳墠鏃ユ湡("YYYY-MM-DD"); 杈撳嚭: 鏄惁宸查€炬湡
     bool isOverdue(const string& today) const;
 
-    // 输入: 续借延长天数(默认15)；输出: 新的应还日期（已达上限返回空串）
+    // 杈撳叆: 缁€熷欢闀垮ぉ鏁?榛樿15)锛涜緭鍑? 鏂扮殑搴旇繕鏃ユ湡锛堝凡杈句笂闄愯繑鍥炵┖涓诧級
     string renew(int extraDays = 15);
 };
 
 
 // ----------------------------------------------------------------
-//  M5. Reservation — 预约记录
+//  M5. Reservation 鈥?棰勭害璁板綍
 // ----------------------------------------------------------------
 class Reservation {
 private:
     int    id_;
     int    userId_;
     int    bookId_;
-    string reserveDate_;      // 预约时间
-    string expireDate_;       // 过期时间（+48h）
+    string reserveDate_;      // 棰勭害鏃堕棿
+    string expireDate_;       // 杩囨湡鏃堕棿锛?48h锛?
     string status_;           // "pending" | "fulfilled" | "cancelled" | "expired"
-    int    priority_;         // 0=普通, 1=优先(信用≥90)
+    int    priority_;         // 0=鏅€? 1=浼樺厛(淇＄敤鈮?0)
 
 public:
     Reservation();
 
-    // —— Getter ——
+    // 鈥斺€?Getter 鈥斺€?
     int    getId()          const { return id_; }
     int    getUserId()      const { return userId_; }
     int    getBookId()      const { return bookId_; }
@@ -326,7 +327,7 @@ public:
     string getStatus()      const { return status_; }
     int    getPriority()    const { return priority_; }
 
-    // —— Setter ——
+    // 鈥斺€?Setter 鈥斺€?
     void setId(int i)               { id_ = i; }
     void setUserId(int u)           { userId_ = u; }
     void setBookId(int b)           { bookId_ = b; }
@@ -334,23 +335,23 @@ public:
     void setExpireDate(const string& d)  { expireDate_ = d; }
     void setPriority(int p)             { priority_ = p; }
 
-    // —— 状态操作 ——
+    // 鈥斺€?鐘舵€佹搷浣?鈥斺€?
     bool setStatus(const string& s);
 
-    // 输入: 当前时间; 输出: 是否已过期
+    // 杈撳叆: 褰撳墠鏃堕棿; 杈撳嚭: 鏄惁宸茶繃鏈?
     bool isExpired(const string& now) const;
 };
 
 
 // ----------------------------------------------------------------
-//  M6. Category — 图书分类
+//  M6. Category 鈥?鍥句功鍒嗙被
 // ----------------------------------------------------------------
 class Category {
 private:
     int    id_;
     string name_;
-    int    parentId_;         // 父分类 ID，0 表示根分类
-    int    level_;            // 层级深度（根为 0）
+    int    parentId_;         // 鐖跺垎绫?ID锛? 琛ㄧず鏍瑰垎绫?
+    int    level_;            // 灞傜骇娣卞害锛堟牴涓?0锛?
 
 public:
     Category();
@@ -365,22 +366,22 @@ public:
     void setParentId(int p)        { parentId_ = p; }
     void setLevel(int l)           { level_ = l; }
 
-    // 输出: parentId==0 则为根分类
+    // 杈撳嚭: parentId==0 鍒欎负鏍瑰垎绫?
     bool isRoot() const { return parentId_ == 0; }
 };
 
 
 // ----------------------------------------------------------------
-//  M7. LogEntry — 日志记录
+//  M7. LogEntry 鈥?鏃ュ織璁板綍
 // ----------------------------------------------------------------
 class LogEntry {
 private:
     int    id_;
     int    adminId_;
-    string action_;          // 操作类型，如 "delete_book"
-    string target_;          // 操作对象描述
-    string detail_;          // 详情
-    string time_;            // 时间戳
+    string action_;          // 鎿嶄綔绫诲瀷锛屽 "delete_book"
+    string target_;          // 鎿嶄綔瀵硅薄鎻忚堪
+    string detail_;          // 璇︽儏
+    string time_;            // 鏃堕棿鎴?
 
 public:
     LogEntry();
@@ -401,117 +402,117 @@ public:
 };
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  第二部分：算法引擎（Algorithm） — 王博涵                       ║
-// ║  纯函数，无状态，无 DB 依赖，可独立单元测试                       ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 绗簩閮ㄥ垎锛氱畻娉曞紩鎿庯紙Algorithm锛?鈥?鐜嬪崥娑?                      鈺?
+// 鈺? 绾嚱鏁帮紝鏃犵姸鎬侊紝鏃?DB 渚濊禆锛屽彲鐙珛鍗曞厓娴嬭瘯                       鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
 // ----------------------------------------------------------------
-//  A1. CreditEngine — 信用积分引擎
+//  A1. CreditEngine 鈥?淇＄敤绉垎寮曟搸
 // ----------------------------------------------------------------
 class CreditEngine {
 public:
     static constexpr int INITIAL_SCORE    = 100;
-    static constexpr int BORROW_THRESHOLD = 60;    // 低于此分禁止借阅
+    static constexpr int BORROW_THRESHOLD = 60;    // 浣庝簬姝ゅ垎绂佹鍊熼槄
     static constexpr int MAX_SCORE        = 100;
-    static constexpr int PENALTY_OVERDUE  = -10;   // 逾期归还扣分
-    static constexpr int PENALTY_DAMAGE   = -20;   // 损坏扣分
-    static constexpr int PENALTY_SEVERE   = -30;   // 严重逾期(>30天)
-    static constexpr int REWARD_ON_TIME   = +5;    // 按时归还加分
-    static constexpr int REWARD_DONATE    = +10;   // 捐赠加分
+    static constexpr int PENALTY_OVERDUE  = -10;   // 閫炬湡褰掕繕鎵ｅ垎
+    static constexpr int PENALTY_DAMAGE   = -20;   // 鎹熷潖鎵ｅ垎
+    static constexpr int PENALTY_SEVERE   = -30;   // 涓ラ噸閫炬湡(>30澶?
+    static constexpr int REWARD_ON_TIME   = +5;    // 鎸夋椂褰掕繕鍔犲垎
+    static constexpr int REWARD_DONATE    = +10;   // 鎹愯禒鍔犲垎
 
-    // 输入: 当前信用分, 操作类型("overdue"/"on_time"/"damage"/"donate")
-    // 输出: 新的信用分（自动 clamp 到 [0, MAX_SCORE]）
+    // 杈撳叆: 褰撳墠淇＄敤鍒? 鎿嶄綔绫诲瀷("overdue"/"on_time"/"damage"/"donate")
+    // 杈撳嚭: 鏂扮殑淇＄敤鍒嗭紙鑷姩 clamp 鍒?[0, MAX_SCORE]锛?
     static int updateScore(int currentScore, const string& action);
 
-    // 输入: 信用分; 输出: 是否可借阅
+    // 杈撳叆: 淇＄敤鍒? 杈撳嚭: 鏄惁鍙€熼槄
     static bool canBorrow(int score);
 
-    // 输入: 信用分; 输出: "优秀"(≥90) | "良好"(≥75) | "一般"(≥60) | "较差"(<60)
+    // 杈撳叆: 淇＄敤鍒? 杈撳嚭: "浼樼"(鈮?0) | "鑹ソ"(鈮?5) | "涓€鑸?(鈮?0) | "杈冨樊"(<60)
     static string getLevel(int score);
 };
 
 
 // ----------------------------------------------------------------
-//  A2. FineCalculator — 阶梯费率罚款计算器
+//  A2. FineCalculator 鈥?闃舵璐圭巼缃氭璁＄畻鍣?
 // ----------------------------------------------------------------
 class FineCalculator {
 private:
-    static constexpr double RATE_TIER1  = 0.5;    // 1-7天
-    static constexpr double RATE_TIER2  = 1.0;    // 8-30天
-    static constexpr double RATE_TIER3  = 2.0;    // >30天
+    static constexpr double RATE_TIER1  = 0.5;    // 1-7澶?
+    static constexpr double RATE_TIER2  = 1.0;    // 8-30澶?
+    static constexpr double RATE_TIER3  = 2.0;    // >30澶?
     static constexpr int    TIER1_DAYS  = 7;
     static constexpr int    TIER2_DAYS  = 30;
     static constexpr double MAX_FINE    = 100.0;
 
 public:
-    // 输入: dueDate(应还日期"YYYY-MM-DD"), returnDate(实际归还日期)
-    // 输出: 罚款金额（元），0 表示未逾期
+    // 杈撳叆: dueDate(搴旇繕鏃ユ湡"YYYY-MM-DD"), returnDate(瀹為檯褰掕繕鏃ユ湡)
+    // 杈撳嚭: 缃氭閲戦锛堝厓锛夛紝0 琛ㄧず鏈€炬湡
     static double calcFine(const string& dueDate, const string& returnDate);
 };
 
 
 // ----------------------------------------------------------------
-//  A3. SearchIndex — 倒排索引搜索引擎
+//  A3. SearchIndex 鈥?鍊掓帓绱㈠紩鎼滅储寮曟搸
 // ----------------------------------------------------------------
 struct SearchResult {
     int    bookId;
-    double score;        // 相关性得分（越高越相关）
+    double score;        // 鐩稿叧鎬у緱鍒嗭紙瓒婇珮瓒婄浉鍏筹級
 };
 
 class SearchIndex {
 private:
-    // 核心: 关键词 → bookId 集合
+    // 鏍稿績: 鍏抽敭璇?鈫?bookId 闆嗗悎
     unordered_map<string, set<int>> invertedIndex_;
-    // 辅助: bookId → 借阅次数（热度排序用）
+    // 杈呭姪: bookId 鈫?鍊熼槄娆℃暟锛堢儹搴︽帓搴忕敤锛?
     unordered_map<int, int> borrowCount_;
 
-    // 分词: 输入文本 → 输出关键词列表
+    // 鍒嗚瘝: 杈撳叆鏂囨湰 鈫?杈撳嚭鍏抽敭璇嶅垪琛?
     vector<string> tokenize(const string& text) const;
 
 public:
-    // 输入: 全部图书列表; 输出: 无（构建索引）
+    // 杈撳叆: 鍏ㄩ儴鍥句功鍒楄〃; 杈撳嚭: 鏃狅紙鏋勫缓绱㈠紩锛?
     void buildIndex(const vector<Book>& books);
 
-    // 输入: 搜索关键词, 返回数量; 输出: 按相关性降序的搜索结果
+    // 杈撳叆: 鎼滅储鍏抽敭璇? 杩斿洖鏁伴噺; 杈撳嚭: 鎸夌浉鍏虫€ч檷搴忕殑鎼滅储缁撴灉
     vector<SearchResult> search(const string& query, int topN = 20) const;
 
-    // 增量更新
+    // 澧為噺鏇存柊
     void addBook(const Book& book);
     void removeBook(int bookId);
 };
 
 
 // ----------------------------------------------------------------
-//  A4. RecommendEngine — 协同过滤推荐引擎
+//  A4. RecommendEngine 鈥?鍗忓悓杩囨护鎺ㄨ崘寮曟搸
 // ----------------------------------------------------------------
 class RecommendEngine {
 private:
-    // userId → 借过的 bookId 集合
+    // userId 鈫?鍊熻繃鐨?bookId 闆嗗悎
     unordered_map<int, set<int>> userBooks_;
-    // (bookA, bookB) → 同时被借的次数
+    // (bookA, bookB) 鈫?鍚屾椂琚€熺殑娆℃暟
     map<pair<int,int>, int> cooccurrence_;
 
-    // 输入: 两个集合; 输出: Jaccard 相似度 [0,1]
+    // 杈撳叆: 涓や釜闆嗗悎; 杈撳嚭: Jaccard 鐩镐技搴?[0,1]
     double jaccardSimilarity(const set<int>& a, const set<int>& b) const;
 
 public:
-    // 输入: 所有借阅记录; 输出: 无（构建共现矩阵）
+    // 杈撳叆: 鎵€鏈夊€熼槄璁板綍; 杈撳嚭: 鏃狅紙鏋勫缓鍏辩幇鐭╅樀锛?
     void buildMatrix(const vector<BorrowRecord>& records);
 
-    // 输入: 目标用户ID, 推荐数量, 已借记录, 全部图书列表
-    // 输出: 推荐图书ID列表（按推荐分数降序）
+    // 杈撳叆: 鐩爣鐢ㄦ埛ID, 鎺ㄨ崘鏁伴噺, 宸插€熻褰? 鍏ㄩ儴鍥句功鍒楄〃
+    // 杈撳嚭: 鎺ㄨ崘鍥句功ID鍒楄〃锛堟寜鎺ㄨ崘鍒嗘暟闄嶅簭锛?
     vector<int> recommend(int targetUserId, int topN,
                           const vector<BorrowRecord>& userHistory,
                           const vector<Book>& allBooks) const;
 
-    // 实时更新: 有新借阅时调用
+    // 瀹炴椂鏇存柊: 鏈夋柊鍊熼槄鏃惰皟鐢?
     void onBorrow(int userId, int bookId);
 };
 
 
 // ----------------------------------------------------------------
-//  A5. CategoryTree — 分类树
+//  A5. CategoryTree 鈥?鍒嗙被鏍?
 // ----------------------------------------------------------------
 class CategoryTree {
 private:
@@ -526,68 +527,68 @@ private:
     int rootId_ = 0;
 
 public:
-    // 输入: 扁平分类列表; 输出: 无（构建树）
+    // 杈撳叆: 鎵佸钩鍒嗙被鍒楄〃; 杈撳嚭: 鏃狅紙鏋勫缓鏍戯級
     void buildTree(const vector<Category>& categories);
 
-    // 输入: 分类ID; 输出: 直接子分类ID列表
+    // 杈撳叆: 鍒嗙被ID; 杈撳嚭: 鐩存帴瀛愬垎绫籌D鍒楄〃
     vector<int> getChildren(int categoryId) const;
 
-    // 输入: 分类ID; 输出: 所有子孙分类ID（递归展开）
+    // 杈撳叆: 鍒嗙被ID; 杈撳嚭: 鎵€鏈夊瓙瀛欏垎绫籌D锛堥€掑綊灞曞紑锛?
     vector<int> getAllDescendants(int categoryId) const;
 
-    // 输入: 分类ID; 输出: 从根到该分类的路径（如 "计算机/编程语言/C++"）
+    // 杈撳叆: 鍒嗙被ID; 杈撳嚭: 浠庢牴鍒拌鍒嗙被鐨勮矾寰勶紙濡?"璁＄畻鏈?缂栫▼璇█/C++"锛?
     string getPath(int categoryId) const;
 
-    // 输入: 分类名; 输出: 分类ID（-1 未找到）
+    // 杈撳叆: 鍒嗙被鍚? 杈撳嚭: 鍒嗙被ID锛?1 鏈壘鍒帮級
     int findByName(const string& name) const;
 };
 
 
 // ----------------------------------------------------------------
-//  A6. ReservationQueue — FIFO 预约队列（线程安全）
+//  A6. ReservationQueue 鈥?FIFO 棰勭害闃熷垪锛堢嚎绋嬪畨鍏級
 // ----------------------------------------------------------------
 class ReservationQueue {
 private:
     struct QueueItem {
         int userId;
-        int priority;      // 0=普通, 1=优先
+        int priority;      // 0=鏅€? 1=浼樺厛
         time_t timestamp;
     };
-    // bookId → 等待队列
+    // bookId 鈫?绛夊緟闃熷垪
     unordered_map<int, queue<QueueItem>> queues_;
     mutable mutex mtx_;
 
 public:
-    // 输入: bookId, userId, priority(0/1)
-    // 输出: 排队位置（从 1 开始），-1 表示已在队列中
+    // 杈撳叆: bookId, userId, priority(0/1)
+    // 杈撳嚭: 鎺掗槦浣嶇疆锛堜粠 1 寮€濮嬶級锛?1 琛ㄧず宸插湪闃熷垪涓?
     int  enqueue(int bookId, int userId, int priority = 0);
 
-    // 输入: bookId; 输出: 队首 userId（-1 表示队列空）
+    // 杈撳叆: bookId; 杈撳嚭: 闃熼 userId锛?1 琛ㄧず闃熷垪绌猴級
     int  dequeue(int bookId);
 
-    // 输入: bookId, userId
+    // 杈撳叆: bookId, userId
     void cancel(int bookId, int userId);
 
-    // 输入: bookId, userId; 输出: 排队位置（-1 不在队列）
+    // 杈撳叆: bookId, userId; 杈撳嚭: 鎺掗槦浣嶇疆锛?1 涓嶅湪闃熷垪锛?
     int  getPosition(int bookId, int userId) const;
 
-    // 输入: 超时小时数(默认48); 输出: (bookId, userId) 超时预约列表
+    // 杈撳叆: 瓒呮椂灏忔椂鏁?榛樿48); 杈撳嚭: (bookId, userId) 瓒呮椂棰勭害鍒楄〃
     vector<pair<int,int>> processExpired(int timeoutHours = 48);
 
-    // 输入: bookId; 输出: 队列长度
+    // 杈撳叆: bookId; 杈撳嚭: 闃熷垪闀垮害
     int  size(int bookId) const;
 
-    // 输入: bookId; 输出: 查看队首（不弹出，-1 表示空）
+    // 杈撳叆: bookId; 杈撳嚭: 鏌ョ湅闃熼锛堜笉寮瑰嚭锛?1 琛ㄧず绌猴級
     int  peekFront(int bookId) const;
 };
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  第三部分：API 桥接层 — 佘时裕                                  ║
-// ║  单例模式，前端唯一入口                                          ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 绗笁閮ㄥ垎锛欰PI 妗ユ帴灞?鈥?浣樻椂瑁?                                 鈺?
+// 鈺? 鍗曚緥妯″紡锛屽墠绔敮涓€鍏ュ彛                                          鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
-// 前置声明
+// 鍓嶇疆澹版槑
 class AuthService;
 class BookService;
 class BorrowService;
@@ -597,52 +598,52 @@ class LogService;
 
 class ApiBridge {
 public:
-    // —— 单例 ——
+    // 鈥斺€?鍗曚緥 鈥斺€?
     static ApiBridge& getInstance();
-    // 输入: 数据库文件路径; 输出: 初始化是否成功
+    // 杈撳叆: 鏁版嵁搴撴枃浠惰矾寰? 杈撳嚭: 鍒濆鍖栨槸鍚︽垚鍔?
     bool initialize(const string& dbPath = "library.db");
 
-    // ======== 认证 ========
-    // 输入: 用户名, 密码(明文)
-    // 输出: 用户对象; status.msg 含错误信息
+    // ======== 璁よ瘉 ========
+    // 杈撳叆: 鐢ㄦ埛鍚? 瀵嗙爜(鏄庢枃)
+    // 杈撳嚭: 鐢ㄦ埛瀵硅薄; status.msg 鍚敊璇俊鎭?
     User login(const string& username, const string& password, Status& status);
 
-    // 输入: 用户名, 密码, 姓名, 角色
-    // 输出: 用户对象; status 含注册结果
+    // 杈撳叆: 鐢ㄦ埛鍚? 瀵嗙爜, 濮撳悕, 瑙掕壊
+    // 杈撳嚭: 鐢ㄦ埛瀵硅薄; status 鍚敞鍐岀粨鏋?
     User registerUser(const string& username, const string& password,
                       const string& realName, const string& role, Status& status);
 
-    // 输出: 当前登录用户
+    // 杈撳嚭: 褰撳墠鐧诲綍鐢ㄦ埛
     User getCurrentUser() const;
 
-    // ======== 检索 ========
-    // done: false=执行中, true=已结束（供前端轮询）
+    // ======== 妫€绱?========
+    // done: false=鎵ц涓? true=宸茬粨鏉燂紙渚涘墠绔疆璇級
     pair<vector<Book>, int> searchBooks(const string& query, int categoryId,
                                         int page, int pageSize,
                                         Status& status, bool& done);
 
     Book getBookDetail(int bookId);
 
-    // done: 同上
+    // done: 鍚屼笂
     vector<Book> getRecommendations(int userId, Status& status, bool& done);
 
-    // ======== 借阅 ========
-    // done: false=执行中(含乐观锁重试), true=已结束
+    // ======== 鍊熼槄 ========
+    // done: false=鎵ц涓?鍚箰瑙傞攣閲嶈瘯), true=宸茬粨鏉?
     BorrowRecord borrowBook(int userId, int bookId, Status& status, bool& done);
     BorrowRecord returnBook(int borrowId, Status& status, bool& done);
     BorrowRecord renewBook(int borrowId, Status& status, bool& done);
 
-    // 输入: userId; 输出: 借阅记录列表
+    // 杈撳叆: userId; 杈撳嚭: 鍊熼槄璁板綍鍒楄〃
     vector<BorrowRecord> getMyBorrowRecords(int userId);
 
-    // ======== 预约 ========
-    // 输入: userId, bookId; status 返回结果
-    // 输出: 预约记录（失败时 id=0）
+    // ======== 棰勭害 ========
+    // 杈撳叆: userId, bookId; status 杩斿洖缁撴灉
+    // 杈撳嚭: 棰勭害璁板綍锛堝け璐ユ椂 id=0锛?
     Reservation reserveBook(int userId, int bookId, Status& status);
     Status cancelReservation(int reservationId);
     vector<Reservation> getMyReservations(int userId);
 
-    // ======== 管理 ========
+    // ======== 绠＄悊 ========
     Status addBook(const Book& book);
     Status updateBook(const Book& book);
     Status deleteBook(int bookId, int adminId);
@@ -650,19 +651,19 @@ public:
     Status disableUser(int userId, int adminId);
     Status enableUser(int userId);
 
-    // ======== 统计 ========
-    // done: false=执行中(汇总多表), true=已结束
+    // ======== 缁熻 ========
+    // done: false=鎵ц涓?姹囨€诲琛?, true=宸茬粨鏉?
     struct Stats { int totalBooks; int totalUsers; int activeBorrows;
                    int overdueCount; double totalFines; };
     Stats getStatistics(Status& status, bool& done);
 
 private:
-    ApiBridge();                                    // 禁止外部构造
+    ApiBridge();                                    // 绂佹澶栭儴鏋勯€?
     ~ApiBridge();
-    ApiBridge(const ApiBridge&) = delete;           // 禁止拷贝
+    ApiBridge(const ApiBridge&) = delete;           // 绂佹鎷疯礉
     ApiBridge& operator=(const ApiBridge&) = delete;
 
-    // —— 各 Service 实例 ——
+    // 鈥斺€?鍚?Service 瀹炰緥 鈥斺€?
     unique_ptr<AuthService>        authSvc_;
     unique_ptr<BookService>        bookSvc_;
     unique_ptr<BorrowService>      borrowSvc_;
@@ -670,18 +671,37 @@ private:
     unique_ptr<OverdueScanner>     overdueScanner_;
     unique_ptr<LogService>         logSvc_;
 
-    User currentUser_;             // 当前登录用户
+    User currentUser_;             // 褰撳墠鐧诲綍鐢ㄦ埛
     bool initialized_ = false;
+
+    // -- Internal: DAOs --
+    class DatabaseManager* db_ = nullptr;
+    class UserDao*        userDao_       = nullptr;
+    class BookDao*        bookDao_       = nullptr;
+    class BorrowRecordDao* brDao_        = nullptr;
+    class CategoryDao*    catDao_        = nullptr;
+    class ReservationDao* resDao_        = nullptr;
+    class LogDao*         logDao_        = nullptr;
+
+    // -- Internal: Algorithm modules --
+    class SearchIndex*       searchIdx_     = nullptr;
+    class RecommendEngine*   recommendEng_  = nullptr;
+    class CategoryTree*      categoryTree_  = nullptr;
+    class CreditEngine*      creditEng_     = nullptr;
+    class FineCalculator*    fineCalc_      = nullptr;
+    class ReservationQueue*  resQueue_      = nullptr;
+
+    class OverdueScanner*    scanner_       = nullptr;
 };
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  第四部分：业务服务层 — 佘时裕                                    ║
-// ║  事务控制 + 并发安全 + 定时任务                                    ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 绗洓閮ㄥ垎锛氫笟鍔℃湇鍔″眰 鈥?浣樻椂瑁?                                   鈺?
+// 鈺? 浜嬪姟鎺у埗 + 骞跺彂瀹夊叏 + 瀹氭椂浠诲姟                                    鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
 // ----------------------------------------------------------------
-//  S1. AuthService — 认证服务
+//  S1. AuthService 鈥?璁よ瘉鏈嶅姟
 // ----------------------------------------------------------------
 class AuthService {
 private:
@@ -690,33 +710,33 @@ private:
 public:
     explicit AuthService(class UserDao* dao);
 
-    // 输入: 用户名, 明文密码
-    // 输出: 用户对象（失败时 id=0）; status.code 含错误码, status.msg 含中文信息
+    // 杈撳叆: 鐢ㄦ埛鍚? 鏄庢枃瀵嗙爜
+    // 杈撳嚭: 鐢ㄦ埛瀵硅薄锛堝け璐ユ椂 id=0锛? status.code 鍚敊璇爜, status.msg 鍚腑鏂囦俊鎭?
     User login(const string& username, const string& password, Status& status);
 
-    // 输入: 用户名, 明文密码, 姓名, 角色
-    // 输出: 用户对象（失败时 id=0）; status 含注册结果
+    // 杈撳叆: 鐢ㄦ埛鍚? 鏄庢枃瀵嗙爜, 濮撳悕, 瑙掕壊
+    // 杈撳嚭: 鐢ㄦ埛瀵硅薄锛堝け璐ユ椂 id=0锛? status 鍚敞鍐岀粨鏋?
     User registerUser(const string& username, const string& password,
                       const string& realName, const string& role, Status& status);
 };
 
 
 // ----------------------------------------------------------------
-//  S2. BookService — 图书服务
+//  S2. BookService 鈥?鍥句功鏈嶅姟
 // ----------------------------------------------------------------
 class BookService {
 private:
     class BookDao*     bookDao_;
     class LogService*  logSvc_;
-    SearchIndex*       searchIdx_;
-    RecommendEngine*   recommendEng_;
-    CategoryTree*      categoryTree_;
+    class SearchIndex*       searchIdx_;
+    class RecommendEngine*   recommendEng_;
+    class CategoryTree*      categoryTree_;
 
 public:
     BookService(class BookDao* bDao, class LogService* lSvc,
-                SearchIndex* idx, RecommendEngine* rec, CategoryTree* cat);
+    class SearchIndex* idx, RecommendEngine* rec, CategoryTree* cat);
 
-    // done: false=执行中, true=已结束
+    // done: false=鎵ц涓? true=宸茬粨鏉?
     pair<vector<Book>, int> search(const string& query, int categoryId,
                                    int page, int pageSize,
                                    Status& status, bool& done);
@@ -725,7 +745,7 @@ public:
 
     vector<Book> getRecommendations(int userId, int topN, Status& status, bool& done);
 
-    // 管理操作（需要 adminId 记录日志）; status 返回结果
+    // 绠＄悊鎿嶄綔锛堥渶瑕?adminId 璁板綍鏃ュ織锛? status 杩斿洖缁撴灉
     Status addBook(const Book& book, int adminId);
     Status updateBook(const Book& book, int adminId);
     Status deleteBook(int bookId, int adminId);
@@ -733,84 +753,84 @@ public:
 
 
 // ----------------------------------------------------------------
-//  S3. BorrowService（核心）— 借阅服务 + 乐观锁事务
+//  S3. BorrowService锛堟牳蹇冿級鈥?鍊熼槄鏈嶅姟 + 涔愯閿佷簨鍔?
 // ----------------------------------------------------------------
 class BorrowService {
 private:
     class BorrowRecordDao* borrowDao_;
     class BookDao*         bookDao_;
-    CreditEngine*          creditEng_;
-    ReservationQueue*      resQueue_;
+    class CreditEngine*          creditEng_;
+    class ReservationQueue*      resQueue_;
 
-    static constexpr int MAX_RENEW       = 2;       // 最大续借次数
-    static constexpr int RENEW_DAYS      = 15;      // 续借延长天数
-    static constexpr int BORROW_DAYS     = 30;      // 借阅天数
-    static constexpr int MAX_RETRY       = 3;       // 乐观锁最大重试次数
+    static constexpr int MAX_RENEW       = 2;       // 鏈€澶х画鍊熸鏁?
+    static constexpr int RENEW_DAYS      = 15;      // 缁€熷欢闀垮ぉ鏁?
+    static constexpr int BORROW_DAYS     = 30;      // 鍊熼槄澶╂暟
+    static constexpr int MAX_RETRY       = 3;       // 涔愯閿佹渶澶ч噸璇曟鏁?
 
 public:
     BorrowService(class BorrowRecordDao* brDao, class BookDao* bDao,
-                  CreditEngine* credit, ReservationQueue* queue);
+    class CreditEngine* credit, ReservationQueue* queue);
 
-    // done: false=执行中(含乐观锁重试), true=已结束
+    // done: false=鎵ц涓?鍚箰瑙傞攣閲嶈瘯), true=宸茬粨鏉?
     BorrowRecord borrowBook(int userId, int bookId, Status& status, bool& done);
     BorrowRecord returnBook(int borrowId, Status& status, bool& done);
     BorrowRecord renewBook(int borrowId, Status& status, bool& done);
 
-    // 输入: userId; 输出: 借阅记录列表
+    // 杈撳叆: userId; 杈撳嚭: 鍊熼槄璁板綍鍒楄〃
     vector<BorrowRecord> getMyRecords(int userId);
 };
 
 
 // ----------------------------------------------------------------
-//  S4. ReservationService — 预约服务
+//  S4. ReservationService 鈥?棰勭害鏈嶅姟
 // ----------------------------------------------------------------
 class ReservationService {
 private:
     class ReservationDao* reserveDao_;
-    ReservationQueue*     queue_;
+    class ReservationQueue*     queue_;
 
 public:
     ReservationService(class ReservationDao* dao, ReservationQueue* q);
 
-    // 输入: userId, bookId; status 返回结果
-    // 输出: 预约记录（失败时 id=0, status.msg 含原因）
+    // 杈撳叆: userId, bookId; status 杩斿洖缁撴灉
+    // 杈撳嚭: 棰勭害璁板綍锛堝け璐ユ椂 id=0, status.msg 鍚師鍥狅級
     Reservation reserveBook(int userId, int bookId, Status& status);
 
-    // 输入: reservationId
-    // 输出: Status 对象，包含取消结果
+    // 杈撳叆: reservationId
+    // 杈撳嚭: Status 瀵硅薄锛屽寘鍚彇娑堢粨鏋?
     Status cancelReservation(int reservationId);
 
-    // 输入: userId; 输出: 预约列表
+    // 杈撳叆: userId; 杈撳嚭: 棰勭害鍒楄〃
     vector<Reservation> getMyReservations(int userId);
 
-    // 归还触发: 通知队首用户（内部调用 queue_.dequeue()）
+    // 褰掕繕瑙﹀彂: 閫氱煡闃熼鐢ㄦ埛锛堝唴閮ㄨ皟鐢?queue_.dequeue()锛?
     void processReturn(int bookId);
 
-    // 定时扫描: 处理超时预约（内部调用 queue_.processExpired()）
+    // 瀹氭椂鎵弿: 澶勭悊瓒呮椂棰勭害锛堝唴閮ㄨ皟鐢?queue_.processExpired()锛?
     void processExpired();
 };
 
 
 // ----------------------------------------------------------------
-//  S5. OverdueScanner — 逾期扫描定时任务
+//  S5. OverdueScanner 鈥?閫炬湡鎵弿瀹氭椂浠诲姟
 // ----------------------------------------------------------------
 class OverdueScanner {
 private:
     class BorrowRecordDao* borrowDao_;
     class BookDao*         bookDao_;
-    CreditEngine*          creditEng_;
+    class CreditEngine*          creditEng_;
 
 public:
     OverdueScanner(class BorrowRecordDao* brDao, class BookDao* bDao,
-                   CreditEngine* credit);
+    class CreditEngine* credit);
 
-    // 执行一次扫描: 找到所有逾期记录 → 更新状态 → 计算罚款 → 扣信用分
+    // 鎵ц涓€娆℃壂鎻? 鎵惧埌鎵€鏈夐€炬湡璁板綍 鈫?鏇存柊鐘舵€?鈫?璁＄畻缃氭 鈫?鎵ｄ俊鐢ㄥ垎
     void scan();
 };
 
 
 // ----------------------------------------------------------------
-//  S6. LogService — 审计日志服务
+//  S6. LogService 鈥?瀹¤鏃ュ織鏈嶅姟
 // ----------------------------------------------------------------
 class LogService {
 private:
@@ -819,29 +839,29 @@ private:
 public:
     explicit LogService(class LogDao* dao);
 
-    // 输入: 管理员ID, 操作类型, 操作对象, 详情
+    // 杈撳叆: 绠＄悊鍛業D, 鎿嶄綔绫诲瀷, 鎿嶄綔瀵硅薄, 璇︽儏
     void log(int adminId, const string& action,
              const string& target, const string& detail);
 
-    // 输入: 管理员ID; 输出: 该管理员的全部操作日志
+    // 杈撳叆: 绠＄悊鍛業D; 杈撳嚭: 璇ョ鐞嗗憳鐨勫叏閮ㄦ搷浣滄棩蹇?
     vector<LogEntry> getAdminLogs(int adminId);
 
-    // 输入: 天数; 输出: 最近N天的全部操作日志
+    // 杈撳叆: 澶╂暟; 杈撳嚭: 鏈€杩慛澶╃殑鍏ㄩ儴鎿嶄綔鏃ュ織
     vector<LogEntry> getRecentLogs(int days);
 };
 
 
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  第五部分：数据持久层 (DAO) — 佘时裕                              ║
-// ║  SQLite + 6张表 + 索引 + 触发器                                  ║
-// ╚══════════════════════════════════════════════════════════════╝
+// 鈺斺晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晽
+// 鈺? 绗簲閮ㄥ垎锛氭暟鎹寔涔呭眰 (DAO) 鈥?浣樻椂瑁?                             鈺?
+// 鈺? SQLite + 6寮犺〃 + 绱㈠紩 + 瑙﹀彂鍣?                                 鈺?
+// 鈺氣晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨暆
 
 // ----------------------------------------------------------------
-//  D1. DatabaseManager — 数据库管理器
+//  D1. DatabaseManager 鈥?鏁版嵁搴撶鐞嗗櫒
 // ----------------------------------------------------------------
 class DatabaseManager {
 private:
-    void* db_;           // sqlite3* 指针
+    void* db_;           // sqlite3* 鎸囬拡
 
     void createTables();
     void createIndexes();
@@ -851,26 +871,26 @@ public:
     DatabaseManager();
     ~DatabaseManager();
 
-    // 输入: 数据库文件路径
-    // 输出: Status, code=OK表示成功，msg含具体错误
+    // 杈撳叆: 鏁版嵁搴撴枃浠惰矾寰?
+    // 杈撳嚭: Status, code=OK琛ㄧず鎴愬姛锛宮sg鍚叿浣撻敊璇?
     Status open(const string& dbPath = "library.db");
     void close();
 
-    // 事务控制
+    // 浜嬪姟鎺у埗
     Status beginTransaction();
     Status commit();
     Status rollback();
 
-    // 输入: SQL 语句; 输出: 执行状态
+    // 杈撳叆: SQL 璇彞; 杈撳嚭: 鎵ц鐘舵€?
     Status execute(const string& sql);
 
-    // 输出: 底层 sqlite3* 句柄（供 DAO 使用）
+    // 杈撳嚭: 搴曞眰 sqlite3* 鍙ユ焺锛堜緵 DAO 浣跨敤锛?
     void* getHandle();
 };
 
 
 // ----------------------------------------------------------------
-//  D2~D7: 各 DAO 类（封装 SQL 操作，对外暴露业务接口）
+//  D2~D7: 鍚?DAO 绫伙紙灏佽 SQL 鎿嶄綔锛屽澶栨毚闇蹭笟鍔℃帴鍙ｏ級
 // ----------------------------------------------------------------
 
 class UserDao {
@@ -884,7 +904,7 @@ public:
     User findByUsername(const string& username);
     User findById(int userId);
     vector<User> findAll();
-    User insert(const User& user, Status& status);       // 返回带id的User
+    User insert(const User& user, Status& status);       // 杩斿洖甯d鐨刄ser
     Status update(const User& user);
     Status updateCredit(int userId, int credit);
     Status updateStatus(int userId, const string& status);
@@ -903,11 +923,11 @@ public:
     vector<Book> findByIds(const vector<int>& ids);
     vector<Book> findByCategory(int categoryId);
     vector<Book> findAll();
-    Book insert(const Book& book, Status& status);       // 返回带id的Book
+    Book insert(const Book& book, Status& status);       // 杩斿洖甯d鐨凚ook
     Status update(const Book& book);
     Status deleteBook(int bookId);
 
-    // 乐观锁更新库存: 输入 delta（+1/-1）, 期望版本号
+    // 涔愯閿佹洿鏂板簱瀛? 杈撳叆 delta锛?1/-1锛? 鏈熸湜鐗堟湰鍙?
     // status.code: OK / ERR_VERSION_CONFLICT
     Status updateStockWithLock(int bookId, int delta, int expectedVersion);
 };
@@ -973,3 +993,4 @@ public:
 };
 
 #endif // BACKEND_H
+

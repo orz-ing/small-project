@@ -1,3 +1,3 @@
-#include "borrow_panel.h"
-
-borrow_panel::borrow_panel() {}
+// borrow_panel.cpp — 我的借阅
+#include "frontend.h"
+using namespace std;

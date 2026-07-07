@@ -1,3 +1,3 @@
-#include "recommend_widget.h"
-
-recommend_widget::recommend_widget() {}
+// recommend_widget.cpp — 智能推荐
+#include "frontend.h"
+using namespace std;
