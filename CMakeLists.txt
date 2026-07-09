@@ -1,85 +1,127 @@
 cmake_minimum_required(VERSION 3.16)
-
-project(librarysystem VERSION 0.1 LANGUAGES CXX)
-
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+project(LibraryManagementSystem VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Charts)
+# 指定Qt路径
+set(CMAKE_PREFIX_PATH "D:/Qt/6.9.3/msvc2022_64")
 
-set(PROJECT_SOURCES
-        main.cpp
-        main_window.cpp
-        main_window.h
-        main_window.ui
+# 查找Qt模块
+find_package(Qt6 REQUIRED COMPONENTS Widgets Charts Sql)
+
+# 源文件
+set(SOURCES
+    src/main.cpp
+    src/utils.cpp
+    src/engine/search_index.cpp
+    src/engine/recommend_engine.cpp
+    src/engine/fine_calculator.cpp
+    src/engine/category_tree.cpp
+    src/engine/reservation_queue.cpp
+    src/engine/credit_engine.cpp
+    src/dao/database_manager.cpp
+    src/dao/book_dao.cpp
+    src/dao/user_dao.cpp
+    src/dao/borrow_record_dao.cpp
+    src/dao/reservation_dao.cpp
+    src/dao/category_dao.cpp
+    src/dao/log_dao.cpp
+    src/service/auth_service.cpp
+    src/service/book_service.cpp
+    src/service/borrow_service.cpp
+    src/service/reservation_service.cpp
+    src/service/overdue_scanner.cpp
+    src/service/log_service.cpp
+    src/bridge/api_bridge.cpp
+    src/ui/login_dialog.cpp
+    src/ui/main_window.cpp
+    src/ui/reader/reader_main_widget.cpp
+    src/ui/reader/search_widget.cpp
+    src/ui/reader/borrow_panel.cpp
+    src/ui/reader/recommend_widget.cpp
+    src/ui/reader/reservation_widget.cpp
+    src/ui/admin/admin_dashboard.cpp
+    src/ui/admin/book_manager_widget.cpp
+    src/ui/admin/user_manager_widget.cpp
+    src/ui/admin/statistics_widget.cpp
+    src/ui/notification_widget.cpp
+    tools/mock_generator.cpp
+    tools/csv_exporter.cpp
+    tools/json_exporter.cpp
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(librarysystem
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-        login_dialog.h login_dialog.cpp login_dialog.ui
-        reader_main_widget.h reader_main_widget.cpp
-        search_widget.h search_widget.cpp
-        borrow_panel.h borrow_panel.cpp
-        recommend_widget.h recommend_widget.cpp
-        reservation_widget.h reservation_widget.cpp
-        admin_dashboard.h admin_dashboard.cpp
-        book_manager_widget.h book_manager_widget.cpp
-        user_manager_widget.h user_manager_widget.cpp
-        statistics_widget.h statistics_widget.cpp
-        notification_widget.h notification_widget.cpp
-        resource.qrc
-        style.qss
-        models.h
+set(HEADERS
+    src/models.h
+    src/utils.h
+    src/engine/search_index.h
+    src/engine/recommend_engine.h
+    src/engine/fine_calculator.h
+    src/engine/category_tree.h
+    src/engine/reservation_queue.h
+    src/engine/credit_engine.h
+    src/dao/database_manager.h
+    src/dao/book_dao.h
+    src/dao/user_dao.h
+    src/dao/borrow_record_dao.h
+    src/dao/reservation_dao.h
+    src/dao/category_dao.h
+    src/dao/log_dao.h
+    src/service/auth_service.h
+    src/service/book_service.h
+    src/service/borrow_service.h
+    src/service/reservation_service.h
+    src/service/overdue_scanner.h
+    src/service/log_service.h
+    src/bridge/api_bridge.h
+    src/ui/login_dialog.h
+    src/ui/main_window.h
+    src/ui/reader/reader_main_widget.h
+    src/ui/reader/search_widget.h
+    src/ui/reader/borrow_panel.h
+    src/ui/reader/recommend_widget.h
+    src/ui/reader/reservation_widget.h
+    src/ui/admin/admin_dashboard.h
+    src/ui/admin/book_manager_widget.h
+    src/ui/admin/user_manager_widget.h
+    src/ui/admin/statistics_widget.h
+    src/ui/notification_widget.h
+    tools/mock_generator.h
+    tools/csv_exporter.h
+    tools/json_exporter.h
+)
 
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET librarysystem APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
+# 资源文件
+set(RESOURCES
+    resources/resources.qrc
+)
+
+# 可执行文件
+add_executable(LibraryManagementSystem
+    ${SOURCES}
+    ${HEADERS}
+    ${RESOURCES}
+)
+
+# 链接Qt库
+target_link_libraries(LibraryManagementSystem PRIVATE
+    Qt6::Widgets
+    Qt6::Charts
+    Qt6::Sql
+)
+
+# 包含目录
+target_include_directories(LibraryManagementSystem PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# 启用编译器警告
+if(MSVC)
+    target_compile_options(LibraryManagementSystem PRIVATE /W4 /utf-8)
 else()
-    if(ANDROID)
-        add_library(librarysystem SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(librarysystem
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
-
-target_link_libraries(librarysystem PRIVATE Qt${QT_VERSION_MAJOR}::Widgets  Qt${QT_VERSION_MAJOR}::Charts)
-
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
-if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.librarysystem)
-endif()
-set_target_properties(librarysystem PROPERTIES
-    ${BUNDLE_ID_OPTION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
-)
-
-include(GNUInstallDirs)
-install(TARGETS librarysystem
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(librarysystem)
+    target_compile_options(LibraryManagementSystem PRIVATE -Wall -Wextra)
 endif()

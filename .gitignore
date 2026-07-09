@@ -1,0 +1,30 @@
+﻿# 构建输出
+build/
+cmake-build-*/
+out/
+
+# Qt Creator
+CMakePresets.json
+CMakeUserPresets.json
+.qtcreator/
+
+# VS Code
+.vscode/
+
+# 编译中间文件
+*.o
+*.obj
+*.exe
+*.ilk
+*.pdb
+*.user
+
+# 数据库（让用户首次运行自动生成）
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 系统
+.DS_Store
+Thumbs.db
