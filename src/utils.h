@@ -6,6 +6,8 @@
 #include <QByteArray>
 #include <QVector>
 #include <QStringList>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <cstdint>
 
 namespace Utils {
@@ -49,3 +51,4 @@ QVector<T> jsonArrayToVector(const QJsonArray& arr) {
 } // namespace Utils
 
 #endif // UTILS_H
+

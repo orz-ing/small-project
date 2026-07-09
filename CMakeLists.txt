@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+ï»¿cmake_minimum_required(VERSION 3.16)
 project(LibraryManagementSystem VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,13 +7,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Ö¸¶¨QtÂ·¾¶
-set(CMAKE_PREFIX_PATH "D:/Qt/6.9.3/msvc2022_64")
+# Ö¸ï¿½ï¿½QtÂ·ï¿½ï¿½
+set(CMAKE_PREFIX_PATH "D:/QT/Qt/6.10.1/mingw_64")
 
-# ²éÕÒQtÄ£¿é
+# ï¿½ï¿½ï¿½ï¿½QtÄ£ï¿½ï¿½
 find_package(Qt6 REQUIRED COMPONENTS Widgets Charts Sql)
 
-# Ô´ÎÄ¼þ
+# Ô´ï¿½Ä¼ï¿½
 set(SOURCES
     src/main.cpp
     src/utils.cpp
@@ -94,34 +94,35 @@ set(HEADERS
     tools/json_exporter.h
 )
 
-# ×ÊÔ´ÎÄ¼þ
+# ï¿½ï¿½Ô´ï¿½Ä¼ï¿½
 set(RESOURCES
     resources/resources.qrc
 )
 
-# ¿ÉÖ´ÐÐÎÄ¼þ
+# ï¿½ï¿½Ö´ï¿½ï¿½ï¿½Ä¼ï¿½
 add_executable(LibraryManagementSystem
     ${SOURCES}
     ${HEADERS}
     ${RESOURCES}
 )
 
-# Á´½ÓQt¿â
+# ï¿½ï¿½ï¿½ï¿½Qtï¿½ï¿½
 target_link_libraries(LibraryManagementSystem PRIVATE
     Qt6::Widgets
     Qt6::Charts
     Qt6::Sql
 )
 
-# °üº¬Ä¿Â¼
+# ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
 target_include_directories(LibraryManagementSystem PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# ÆôÓÃ±àÒëÆ÷¾¯¸æ
+# ï¿½ï¿½ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 if(MSVC)
     target_compile_options(LibraryManagementSystem PRIVATE /W4 /utf-8)
 else()
     target_compile_options(LibraryManagementSystem PRIVATE -Wall -Wextra)
 endif()
+

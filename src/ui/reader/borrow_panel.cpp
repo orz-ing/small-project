@@ -38,6 +38,7 @@ void BorrowPanel::setupUI() {
     m_activeTable->setColumnHidden(0, true);
     m_activeTable->verticalHeader()->hide();
     m_activeTable->horizontalHeader()->setStretchLastSection(true);
+    m_activeTable->verticalHeader()->setDefaultSectionSize(50);
     m_tabWidget->addTab(m_activeTable, "当前借阅");
 
     // 历史记录
@@ -49,6 +50,7 @@ void BorrowPanel::setupUI() {
     m_historyTable->setColumnHidden(0, true);
     m_historyTable->verticalHeader()->hide();
     m_historyTable->horizontalHeader()->setStretchLastSection(true);
+    m_historyTable->verticalHeader()->setDefaultSectionSize(50);
     m_tabWidget->addTab(m_historyTable, "历史记录");
 
     layout->addWidget(m_tabWidget, 1);
@@ -77,16 +79,19 @@ void BorrowPanel::refreshData() {
 
         auto* btnLayout = new QWidget;
         auto* btnWidget = new QHBoxLayout(btnLayout);
-        btnWidget->setContentsMargins(2, 2, 2, 2);
+        btnWidget->setContentsMargins(10, 8, 10, 8);
+        btnWidget->setSpacing(10);
 
         auto* returnBtn = new QPushButton("归还");
         returnBtn->setObjectName("warningBtn");
+        returnBtn->setStyleSheet("font-size:12px;padding:5px 10px");
         int recordId = r.id;
         connect(returnBtn, &QPushButton::clicked, this, [this, recordId]() { onReturnBook(recordId); });
         btnWidget->addWidget(returnBtn);
 
         auto* renewBtn = new QPushButton("续借");
         renewBtn->setObjectName("primaryBtn");
+        renewBtn->setStyleSheet("font-size:12px;padding:5px 10px");
         connect(renewBtn, &QPushButton::clicked, this, [this, recordId]() { onRenewBook(recordId); });
         btnWidget->addWidget(renewBtn);
 
@@ -136,3 +141,5 @@ void BorrowPanel::onRenewBook(int recordId) {
         QMessageBox::warning(this, "续借失败", r.message);
     }
 }
+
+

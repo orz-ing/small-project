@@ -56,12 +56,13 @@ void RecommendWidget::refreshRecommendations() {
 
         auto* btnWidget = new QWidget;
         auto* btnLayout = new QHBoxLayout(btnWidget);
-        btnLayout->setContentsMargins(2, 2, 2, 2);
-        btnLayout->setSpacing(4);
+        btnLayout->setContentsMargins(10, 8, 10, 8);
+        btnLayout->setSpacing(10);
 
         int bookId = b.id;
         if (b.availableStock > 0) {
             auto* borrowBtn = new QPushButton("借阅");
+            borrowBtn->setStyleSheet("font-size:12px;padding:5px 10px");
             borrowBtn->setObjectName("successBtn");
             connect(borrowBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();
@@ -72,6 +73,7 @@ void RecommendWidget::refreshRecommendations() {
             btnLayout->addWidget(borrowBtn);
         } else {
             auto* reserveBtn = new QPushButton("预约");
+            reserveBtn->setStyleSheet("font-size:12px;padding:5px 10px");
             reserveBtn->setObjectName("warningBtn");
             connect(reserveBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();

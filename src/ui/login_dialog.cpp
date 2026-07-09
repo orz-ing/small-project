@@ -8,7 +8,7 @@
 LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent) {
     setupUI();
     setWindowTitle("图书管理系统 - 登录");
-    setFixedSize(480, 580);
+    setFixedSize(420, 500);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
@@ -186,4 +186,3 @@ void LoginDialog::switchToLogin() {
     m_statusLabel->hide();
     setWindowTitle("图书管理系统 - 登录");
 }
-

@@ -91,29 +91,18 @@ QVector<Book> MockGenerator::generateBooks(int count, const QVector<Category>& c
         b.totalStock = QRandomGenerator::global()->bounded(1, 11);
         b.availableStock = b.totalStock;
 
-        // 按索引映射到不同预设分类，展示所有类别
-        QStringList catMap = {
-            "技术/计算机", "技术/计算机", "科学/物理",   "技术/计算机",
-            "科学/化学",   "技术/电子",   "艺术/绘画",   "技术/计算机",
-            "科学/生物",   "技术/机械",   "艺术/音乐",   "技术/计算机",
-            "文学/小说",   "文学/散文",   "艺术/电影",   "技术/计算机",
-            "文学/诗歌",   "文学/小说",   "文学/小说",   "科学/物理",
-            "文学/小说",   "科学/化学",   "文学/散文",   "文学/小说",
-            "文学/诗歌",   "科学/生物",   "历史",        "哲学"
-        };
         if (!categories.isEmpty()) {
-            QString targetPath = catMap[i % catMap.size()];
+            // 前16本→技术/计算机, 后12本→文学/小说
             int searchIdx = -1;
-            for (int ci = 0; ci < categories.size(); ++ci) {
-                if (categories[ci].path == targetPath) {
-                    searchIdx = ci; break;
-                }
-            }
-            if (searchIdx < 0) {
-                // 尝试用最后一段名称匹配
-                QString lastName = targetPath.section('/', -1);
+            if (i < 16) {
                 for (int ci = 0; ci < categories.size(); ++ci) {
-                    if (categories[ci].name == lastName) {
+                    if (categories[ci].path.contains("技术/计算机") || categories[ci].name == "计算机") {
+                        searchIdx = ci; break;
+                    }
+                }
+            } else {
+                for (int ci = 0; ci < categories.size(); ++ci) {
+                    if (categories[ci].path.contains("文学/小说") || categories[ci].name == "小说") {
                         searchIdx = ci; break;
                     }
                 }
@@ -217,25 +206,43 @@ QVector<Reservation> MockGenerator::generateReservations(int count,
 }
 
 void MockGenerator::generateToDB(QSqlDatabase db, int bookCount, int userCount,
-                                  int borrowCount, int reservationCount, int /*categoryCount*/) {
+                                  int borrowCount, int reservationCount, int categoryCount) {
+    QSqlQuery clearQuery(db);
+    clearQuery.exec("DELETE FROM reservations");
+    clearQuery.exec("DELETE FROM borrow_records");
+    clearQuery.exec("DELETE FROM books");
+    clearQuery.exec("DELETE FROM categories");
+    clearQuery.exec("DELETE FROM users");
+
     UserDAO userDao(db);
     CategoryDAO catDao(db);
     BookDAO bookDao(db);
     BorrowRecordDAO borrowDao(db);
     ReservationDAO resDao(db);
 
-    // 1. 从数据库读取已有的预设分类（不再重复创建）
-    auto cats = catDao.getAll();
+    // 1. 插入分类，收集实际数据库ID和旧ID→新ID映射
+    auto cats = generateCategories(categoryCount);
+    QVector<int> catIds;
+    QHash<int, int> oldIdToNewId;
+    for (auto& c : cats) {
+        int oldId = c.id;
+        int newId = catDao.insert(c);
+        if (newId > 0) {
+            catIds.append(newId);
+            oldIdToNewId[oldId] = newId;
+        }
+    }
 
-    // 2. 插入图书，直接使用数据库中的真实分类ID
+    // 2. 插入图书，使用正确的分类ID
     auto books = generateBooks(bookCount, cats);
     QVector<Book> insertedBooks;
     for (auto& b : books) {
-        if (!cats.isEmpty()) {
-            // b.categoryId 在 generateBooks 中已设为正确的预设分类ID
-            for (const auto& cat : cats) {
-                if (cat.id == b.categoryId) {
-                    b.categoryPath = cat.path; break;
+        if (!catIds.isEmpty()) {
+            b.categoryId = oldIdToNewId.value(b.categoryId, catIds.first());
+            // 同步更新categoryPath
+            for (const auto& mockCat : cats) {
+                if (oldIdToNewId.value(mockCat.id) == b.categoryId) {
+                    b.categoryPath = mockCat.path; break;
                 }
             }
         } else {
@@ -293,7 +300,6 @@ void MockGenerator::generateToDB(QSqlDatabase db, int bookCount, int userCount,
         resDao.insert(r);
     }
 }
-
 
 
 
