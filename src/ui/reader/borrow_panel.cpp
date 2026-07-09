@@ -1,5 +1,6 @@
 ﻿#include "borrow_panel.h"
 #include "bridge/api_bridge.h"
+#include "ui/book_tooltip.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -38,7 +39,6 @@ void BorrowPanel::setupUI() {
     m_activeTable->setColumnHidden(0, true);
     m_activeTable->verticalHeader()->hide();
     m_activeTable->horizontalHeader()->setStretchLastSection(true);
-    m_activeTable->verticalHeader()->setDefaultSectionSize(50);
     m_tabWidget->addTab(m_activeTable, "当前借阅");
 
     // 历史记录
@@ -50,10 +50,13 @@ void BorrowPanel::setupUI() {
     m_historyTable->setColumnHidden(0, true);
     m_historyTable->verticalHeader()->hide();
     m_historyTable->horizontalHeader()->setStretchLastSection(true);
-    m_historyTable->verticalHeader()->setDefaultSectionSize(50);
     m_tabWidget->addTab(m_historyTable, "历史记录");
 
     layout->addWidget(m_tabWidget, 1);
+
+    // 安装书名悬停预览（使用 UserRole 存储 bookId，idColumn=-1）
+    installBookTitleHover(m_activeTable, 1, -1);
+    installBookTitleHover(m_historyTable, 1, -1);
 }
 
 void BorrowPanel::refreshData() {
@@ -65,7 +68,9 @@ void BorrowPanel::refreshData() {
 
     for (int i = 0; i < activeRecords.size(); ++i) {
         auto& r = activeRecords[i];
-        m_activeTable->setItem(i, 0, new QTableWidgetItem(QString::number(r.id)));
+        auto* idItem = new QTableWidgetItem(QString::number(r.id));
+        idItem->setData(Qt::UserRole, r.bookId);  // 存储 bookId 供悬停预览
+        m_activeTable->setItem(i, 0, idItem);
         m_activeTable->setItem(i, 1, new QTableWidgetItem(r.bookTitle));
         m_activeTable->setItem(i, 2, new QTableWidgetItem(r.borrowDate.toString("yyyy-MM-dd")));
         m_activeTable->setItem(i, 3, new QTableWidgetItem(r.dueDate.toString("yyyy-MM-dd")));
@@ -79,19 +84,16 @@ void BorrowPanel::refreshData() {
 
         auto* btnLayout = new QWidget;
         auto* btnWidget = new QHBoxLayout(btnLayout);
-        btnWidget->setContentsMargins(10, 8, 10, 8);
-        btnWidget->setSpacing(10);
+        btnWidget->setContentsMargins(2, 2, 2, 2);
 
         auto* returnBtn = new QPushButton("归还");
         returnBtn->setObjectName("warningBtn");
-        returnBtn->setStyleSheet("font-size:12px;padding:5px 10px");
         int recordId = r.id;
         connect(returnBtn, &QPushButton::clicked, this, [this, recordId]() { onReturnBook(recordId); });
         btnWidget->addWidget(returnBtn);
 
         auto* renewBtn = new QPushButton("续借");
         renewBtn->setObjectName("primaryBtn");
-        renewBtn->setStyleSheet("font-size:12px;padding:5px 10px");
         connect(renewBtn, &QPushButton::clicked, this, [this, recordId]() { onRenewBook(recordId); });
         btnWidget->addWidget(renewBtn);
 
@@ -109,7 +111,9 @@ void BorrowPanel::refreshData() {
 
     for (int i = 0; i < history.size(); ++i) {
         auto& r = history[i];
-        m_historyTable->setItem(i, 0, new QTableWidgetItem(QString::number(r.id)));
+        auto* hIdItem = new QTableWidgetItem(QString::number(r.id));
+        hIdItem->setData(Qt::UserRole, r.bookId);  // 存储 bookId 供悬停预览
+        m_historyTable->setItem(i, 0, hIdItem);
         m_historyTable->setItem(i, 1, new QTableWidgetItem(r.bookTitle));
         m_historyTable->setItem(i, 2, new QTableWidgetItem(r.borrowDate.toString("yyyy-MM-dd")));
         m_historyTable->setItem(i, 3, new QTableWidgetItem(r.returnDate.toString("yyyy-MM-dd")));
@@ -141,5 +145,3 @@ void BorrowPanel::onRenewBook(int recordId) {
         QMessageBox::warning(this, "续借失败", r.message);
     }
 }
-
-

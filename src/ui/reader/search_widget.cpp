@@ -1,5 +1,6 @@
 ﻿#include "search_widget.h"
 #include "bridge/api_bridge.h"
+#include "ui/book_tooltip.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -45,6 +46,9 @@ void SearchWidget::setupUI() {
 
     connect(m_searchBtn, &QPushButton::clicked, this, &SearchWidget::onSearch);
     connect(m_searchInput, &QLineEdit::returnPressed, this, &SearchWidget::onSearch);
+
+    // 安装书名悬停预览
+    installBookTitleHover(m_resultTable, 1, 0);
 }
 
 void SearchWidget::onSearch() {
@@ -66,14 +70,13 @@ void SearchWidget::onSearch() {
 
         auto* btnWidget = new QWidget;
         auto* btnLayout = new QHBoxLayout(btnWidget);
-        btnLayout->setContentsMargins(10, 8, 10, 8);
-        btnLayout->setSpacing(10);
+        btnLayout->setContentsMargins(2, 2, 2, 2);
+        btnLayout->setSpacing(4);
 
         int bookId = b.id;
         int stock = b.availableStock;
         if (stock > 0) {
             auto* borrowBtn = new QPushButton("借阅");
-            borrowBtn->setStyleSheet("font-size:15px;padding:6px 16px");
             borrowBtn->setObjectName("successBtn");
             connect(borrowBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();
@@ -84,7 +87,6 @@ void SearchWidget::onSearch() {
             btnLayout->addWidget(borrowBtn);
         } else {
             auto* reserveBtn = new QPushButton("预约");
-            reserveBtn->setStyleSheet("font-size:15px;padding:6px 16px");
             reserveBtn->setObjectName("warningBtn");
             connect(reserveBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();

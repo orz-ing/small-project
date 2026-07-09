@@ -4,11 +4,37 @@
 #include <QHBoxLayout>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QPainter>
+#include <QAction>
+
+// 用 QPainter 画眼睛图标，不依赖 emoji 字体
+static QIcon makeEyeIcon(bool open) {
+    QPixmap pix(24, 24);
+    pix.fill(Qt::transparent);
+    QPainter p(&pix);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setPen(QPen(QColor("#5a6a7e"), 2));
+    if (open) {
+        // 眼睛轮廓
+        p.drawEllipse(QPointF(12, 12), 7, 5);
+        // 瞳孔
+        p.setBrush(QColor("#5a6a7e"));
+        p.drawEllipse(QPointF(12, 12), 2.5, 2.5);
+    } else {
+        // 闭眼：一条横线
+        p.drawLine(QPointF(3, 12), QPointF(21, 12));
+        // 小叉
+        p.setPen(QPen(QColor("#e74c3c"), 2));
+        p.drawLine(QPointF(17, 7), QPointF(10, 17));
+    }
+    p.end();
+    return QIcon(pix);
+}
 
 LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent) {
     setupUI();
     setWindowTitle("图书管理系统 - 登录");
-    setFixedSize(420, 500);
+    setFixedSize(480, 580);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
@@ -45,6 +71,14 @@ void LoginDialog::setupUI() {
     m_loginPassword = new QLineEdit;
     m_loginPassword->setEchoMode(QLineEdit::Password);
     m_loginPassword->setPlaceholderText("请输入密码");
+    {
+        QAction* act = m_loginPassword->addAction(makeEyeIcon(true), QLineEdit::TrailingPosition);
+        QObject::connect(act, &QAction::triggered, m_loginPassword, [this, act]() {
+            bool hidden = (m_loginPassword->echoMode() == QLineEdit::Password);
+            m_loginPassword->setEchoMode(hidden ? QLineEdit::Normal : QLineEdit::Password);
+            act->setIcon(makeEyeIcon(hidden));
+        });
+    }
     formLayout1->addRow("密  码:", m_loginPassword);
     loginLayout->addLayout(formLayout1);
     loginLayout->addSpacing(10);
@@ -72,11 +106,27 @@ void LoginDialog::setupUI() {
     m_regPassword = new QLineEdit;
     m_regPassword->setEchoMode(QLineEdit::Password);
     m_regPassword->setPlaceholderText("至少6位密码");
+    {
+        QAction* act = m_regPassword->addAction(makeEyeIcon(true), QLineEdit::TrailingPosition);
+        QObject::connect(act, &QAction::triggered, m_regPassword, [this, act]() {
+            bool hidden = (m_regPassword->echoMode() == QLineEdit::Password);
+            m_regPassword->setEchoMode(hidden ? QLineEdit::Normal : QLineEdit::Password);
+            act->setIcon(makeEyeIcon(hidden));
+        });
+    }
     formLayout2->addRow("密  码:", m_regPassword);
 
     m_regConfirmPassword = new QLineEdit;
     m_regConfirmPassword->setEchoMode(QLineEdit::Password);
     m_regConfirmPassword->setPlaceholderText("再次输入密码");
+    {
+        QAction* act = m_regConfirmPassword->addAction(makeEyeIcon(true), QLineEdit::TrailingPosition);
+        QObject::connect(act, &QAction::triggered, m_regConfirmPassword, [this, act]() {
+            bool hidden = (m_regConfirmPassword->echoMode() == QLineEdit::Password);
+            m_regConfirmPassword->setEchoMode(hidden ? QLineEdit::Normal : QLineEdit::Password);
+            act->setIcon(makeEyeIcon(hidden));
+        });
+    }
     formLayout2->addRow("确认密码:", m_regConfirmPassword);
 
     m_regDisplayName = new QLineEdit;
@@ -186,3 +236,4 @@ void LoginDialog::switchToLogin() {
     m_statusLabel->hide();
     setWindowTitle("图书管理系统 - 登录");
 }
+

@@ -1,7 +1,8 @@
 ﻿#include "book_service.h"
+#include <QSqlQuery>
 #include <QDebug>
 
-BookService::BookService(QSqlDatabase db) : m_bookDao(db), m_catDao(db) {}
+BookService::BookService(QSqlDatabase db) : m_bookDao(db), m_catDao(db), m_db(db) {}
 
 QVector<Book> BookService::getAllBooks() const {
     return m_bookDao.getAll();
@@ -71,6 +72,20 @@ Result BookService::deleteBook(int bookId) {
     if (existing.id == 0) {
         return Result::fail("图书不存在");
     }
+
+    // 先删除关联的预约记录
+    QSqlQuery delRes(m_db);
+    delRes.prepare("DELETE FROM reservations WHERE book_id = ?");
+    delRes.addBindValue(bookId);
+    delRes.exec();
+
+    // 删除关联的借阅记录
+    QSqlQuery delBorrow(m_db);
+    delBorrow.prepare("DELETE FROM borrow_records WHERE book_id = ?");
+    delBorrow.addBindValue(bookId);
+    delBorrow.exec();
+
+    // 最后删除图书
     if (m_bookDao.deleteBook(bookId)) {
         return Result::ok("删除成功");
     }

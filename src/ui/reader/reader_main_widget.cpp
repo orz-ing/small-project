@@ -1,5 +1,6 @@
 ﻿#include "reader_main_widget.h"
 #include "bridge/api_bridge.h"
+#include "ui/book_tooltip.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -85,6 +86,10 @@ void ReaderMainWidget::setupUI() {
 
     loadHotBooks();
     loadAllBooks();  // 默认显示全部书籍
+
+    // 安装书名悬停预览
+    installBookTitleHover(m_resultTable, 1, 0);
+    installBookTitleHover(m_hotTable, 0, -1);
 }
 
 void ReaderMainWidget::loadAllBooks() {
@@ -137,7 +142,9 @@ void ReaderMainWidget::loadHotBooks() {
     auto hotBooks = ApiBridge::instance()->getHotBooks(10);
     m_hotTable->setRowCount(hotBooks.size());
     for (int i = 0; i < hotBooks.size(); ++i) {
-        m_hotTable->setItem(i, 0, new QTableWidgetItem(hotBooks[i].title));
+        auto* titleItem = new QTableWidgetItem(hotBooks[i].title);
+        titleItem->setData(Qt::UserRole, hotBooks[i].id);  // 存储 bookId 供悬停预览使用
+        m_hotTable->setItem(i, 0, titleItem);
         m_hotTable->setItem(i, 1, new QTableWidgetItem(hotBooks[i].author));
 
         auto* btnWidget = new QWidget;
@@ -196,7 +203,7 @@ void ReaderMainWidget::onSearch() {
         int stock = results[i].availableStock;
         if (stock > 0) {
             auto* borrowBtn = new QPushButton("借阅");
-            borrowBtn->setStyleSheet("font-size:12px;padding:5px 10px");
+            borrowBtn->setStyleSheet("font-size:15px;padding:6px 16px");
  borrowBtn->setObjectName("successBtn");
             connect(borrowBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();
@@ -207,7 +214,7 @@ void ReaderMainWidget::onSearch() {
             btnLayout->addWidget(borrowBtn);
         } else {
             auto* reserveBtn = new QPushButton("预约");
-            reserveBtn->setStyleSheet("font-size:12px;padding:5px 10px");
+            reserveBtn->setStyleSheet("font-size:15px;padding:6px 16px");
  reserveBtn->setObjectName("warningBtn");
             connect(reserveBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();

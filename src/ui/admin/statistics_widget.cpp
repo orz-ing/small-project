@@ -70,6 +70,17 @@ void StatisticsWidget::refreshData() {
 
         auto* axisY = new QValueAxis;
         axisY->setTitleText("借阅次数");
+        axisY->setLabelFormat("%d");  // 显示整数
+
+        // 根据数据自动调整Y轴最高值
+        int maxVal = 0;
+        for (const auto& hb : stats.hotBooks) {
+            if (hb.borrowCount > maxVal) maxVal = hb.borrowCount;
+        }
+        int axisMax = qMax(maxVal + 2, 10);
+        axisY->setRange(0, axisMax);
+        axisY->setTickCount(qMin(axisMax + 1, 12));
+
         chart->addAxis(axisY, Qt::AlignLeft);
         barSeries->attachAxis(axisY);
 

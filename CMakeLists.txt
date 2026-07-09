@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16)
 project(LibraryManagementSystem VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -8,7 +8,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # ָ��Qt·��
-set(CMAKE_PREFIX_PATH "D:/QT/Qt/6.10.1/mingw_64")
+# Qt路径由Qt Creator Kit自动配置，无需手动指定
+# set(CMAKE_PREFIX_PATH "D:/Qt/6.9.3/msvc2022_64")
 
 # ����Qtģ��
 find_package(Qt6 REQUIRED COMPONENTS Widgets Charts Sql)
@@ -49,6 +50,7 @@ set(SOURCES
     src/ui/admin/user_manager_widget.cpp
     src/ui/admin/statistics_widget.cpp
     src/ui/notification_widget.cpp
+    src/ui/book_tooltip.cpp
     tools/mock_generator.cpp
     tools/csv_exporter.cpp
     tools/json_exporter.cpp
@@ -89,6 +91,7 @@ set(HEADERS
     src/ui/admin/user_manager_widget.h
     src/ui/admin/statistics_widget.h
     src/ui/notification_widget.h
+    src/ui/book_tooltip.h
     tools/mock_generator.h
     tools/csv_exporter.h
     tools/json_exporter.h
@@ -125,4 +128,3 @@ if(MSVC)
 else()
     target_compile_options(LibraryManagementSystem PRIVATE -Wall -Wextra)
 endif()
-

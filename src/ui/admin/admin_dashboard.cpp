@@ -19,6 +19,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSqlDatabase>
+#include <QSqlQuery>
 
 AdminDashboard::AdminDashboard(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -103,7 +104,7 @@ void AdminDashboard::setupUI() {
 
 void AdminDashboard::generateDemoData() {
     QSqlDatabase db = DatabaseManager::instance().database();
-    MockGenerator::generateToDB(db, 30, 8, 25, 8, 10);
+    MockGenerator::generateToDB(db, 28, 8, 25, 8, 10);
 
     refreshData();
     ApiBridge::instance()->rebuildIndex();
@@ -195,9 +196,25 @@ void AdminDashboard::importCsv() {
             if (col < parts.size()) book.publisher = parts.value(col).trimmed().remove('"');
             col++;
             if (col < parts.size()) book.categoryPath = parts.value(col).trimmed();
+            // 根据分类路径自动查找分类ID
+            QSqlQuery catQ(DatabaseManager::instance().database());
+            catQ.prepare("SELECT id FROM categories WHERE path = ?");
+            catQ.addBindValue(book.categoryPath);
+            if (catQ.exec() && catQ.next()) {
+                book.categoryId = catQ.value(0).toInt();
+            }
             col++;
             if (col < parts.size()) book.totalStock = parts.value(col).toInt();
             book.availableStock = book.totalStock;
+            // 根据分类路径自动查找分类ID
+            if (!book.categoryPath.isEmpty() && book.categoryId == 0) {
+                QSqlQuery catQ3(DatabaseManager::instance().database());
+                catQ3.prepare("SELECT id FROM categories WHERE path = ?");
+                catQ3.addBindValue(book.categoryPath);
+                if (catQ3.exec() && catQ3.next()) {
+                    book.categoryId = catQ3.value(0).toInt();
+                }
+            }
 
             int id = bookDao.insert(book);
             if (id > 0) imported++;
@@ -263,7 +280,6 @@ void AdminDashboard::importJson() {
 
     bool isBooks = first.contains("title") || first.contains("isbn");
     bool isUsers = first.contains("username") || first.contains("passwordHash");
-    bool isRecords = first.contains("borrowDate") || first.contains("bookId");
 
     if (isBooks) {
         BookDAO bookDao(DatabaseManager::instance().database());

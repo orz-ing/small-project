@@ -21,5 +21,6 @@ public:
 private:
     BookDAO m_bookDao;
     CategoryDAO m_catDao;
+    QSqlDatabase m_db;
 };
 #endif

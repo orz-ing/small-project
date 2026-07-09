@@ -1,5 +1,6 @@
 ﻿#include "reservation_widget.h"
 #include "bridge/api_bridge.h"
+#include "ui/book_tooltip.h"
 #include <QVBoxLayout>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -31,11 +32,13 @@ void ReservationWidget::setupUI() {
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setColumnHidden(0, true);
     m_table->verticalHeader()->hide();
-    m_table->verticalHeader()->setDefaultSectionSize(60);
     m_table->horizontalHeader()->setStretchLastSection(true);
     layout->addWidget(m_table, 1);
 
     refreshData();
+
+    // 安装书名悬停预览（使用 UserRole 存储 bookId，idColumn=-1）
+    installBookTitleHover(m_table, 1, -1);
 }
 
 void ReservationWidget::refreshData() {
@@ -47,7 +50,9 @@ void ReservationWidget::refreshData() {
 
     for (int i = 0; i < reservations.size(); ++i) {
         auto& r = reservations[i];
-        m_table->setItem(i, 0, new QTableWidgetItem(QString::number(r.id)));
+        auto* idItem = new QTableWidgetItem(QString::number(r.id));
+        idItem->setData(Qt::UserRole, r.bookId);  // 存储 bookId 供悬停预览
+        m_table->setItem(i, 0, idItem);
         m_table->setItem(i, 1, new QTableWidgetItem(r.bookTitle));
         m_table->setItem(i, 2, new QTableWidgetItem(r.reserveDate.toString("yyyy-MM-dd HH:mm")));
         m_table->setItem(i, 3, new QTableWidgetItem(r.expireDate.toString("yyyy-MM-dd HH:mm")));
@@ -64,7 +69,6 @@ void ReservationWidget::refreshData() {
 
         if (r.status == ReservationStatus::Pending || r.status == ReservationStatus::Notified) {
             auto* cancelBtn = new QPushButton("取消预约");
-            cancelBtn->setStyleSheet("font-size:12px;padding:5px 10px");
             cancelBtn->setObjectName("dangerBtn");
             int resId = r.id;
             connect(cancelBtn, &QPushButton::clicked, this, [this, resId]() { onCancelReservation(resId); });
@@ -87,6 +91,3 @@ void ReservationWidget::onCancelReservation(int reservationId) {
         QMessageBox::warning(this, "失败", r.message);
     }
 }
-
-
-

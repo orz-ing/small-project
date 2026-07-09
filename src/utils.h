@@ -1,13 +1,14 @@
 ﻿#ifndef UTILS_H
 #define UTILS_H
 
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QString>
 #include <QDateTime>
 #include <QByteArray>
 #include <QVector>
 #include <QStringList>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <cstdint>
 
 namespace Utils {
@@ -51,4 +52,3 @@ QVector<T> jsonArrayToVector(const QJsonArray& arr) {
 } // namespace Utils
 
 #endif // UTILS_H
-
