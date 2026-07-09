@@ -31,6 +31,7 @@ void ReservationWidget::setupUI() {
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setColumnHidden(0, true);
     m_table->verticalHeader()->hide();
+    m_table->verticalHeader()->setDefaultSectionSize(60);
     m_table->horizontalHeader()->setStretchLastSection(true);
     layout->addWidget(m_table, 1);
 
@@ -63,6 +64,7 @@ void ReservationWidget::refreshData() {
 
         if (r.status == ReservationStatus::Pending || r.status == ReservationStatus::Notified) {
             auto* cancelBtn = new QPushButton("取消预约");
+            cancelBtn->setStyleSheet("font-size:12px;padding:5px 10px");
             cancelBtn->setObjectName("dangerBtn");
             int resId = r.id;
             connect(cancelBtn, &QPushButton::clicked, this, [this, resId]() { onCancelReservation(resId); });
@@ -85,3 +87,6 @@ void ReservationWidget::onCancelReservation(int reservationId) {
         QMessageBox::warning(this, "失败", r.message);
     }
 }
+
+
+

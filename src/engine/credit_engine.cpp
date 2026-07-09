@@ -12,3 +12,11 @@ int CreditEngine::reward(int currentScore, int bonus) const {
 bool CreditEngine::isBlocked(int score) const {
     return score < BLOCK_THRESHOLD;
 }
+
+QString CreditEngine::getLevelDescription(int score) const {
+    if (score >= 90) return QStringLiteral("优秀");
+    if (score >= 80) return QStringLiteral("良好");
+    if (score >= BLOCK_THRESHOLD) return QStringLiteral("一般");
+    if (score >= 30) return QStringLiteral("较差");
+    return QStringLiteral("极差");
+}

@@ -196,7 +196,7 @@ void ReaderMainWidget::onSearch() {
         int stock = results[i].availableStock;
         if (stock > 0) {
             auto* borrowBtn = new QPushButton("借阅");
-            borrowBtn->setStyleSheet("font-size:15px;padding:6px 16px");
+            borrowBtn->setStyleSheet("font-size:12px;padding:5px 10px");
  borrowBtn->setObjectName("successBtn");
             connect(borrowBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();
@@ -207,7 +207,7 @@ void ReaderMainWidget::onSearch() {
             btnLayout->addWidget(borrowBtn);
         } else {
             auto* reserveBtn = new QPushButton("预约");
-            reserveBtn->setStyleSheet("font-size:15px;padding:6px 16px");
+            reserveBtn->setStyleSheet("font-size:12px;padding:5px 10px");
  reserveBtn->setObjectName("warningBtn");
             connect(reserveBtn, &QPushButton::clicked, this, [this, bookId]() {
                 auto user = ApiBridge::instance()->currentUser();
