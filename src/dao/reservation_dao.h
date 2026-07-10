@@ -1,4 +1,4 @@
-﻿#ifndef RESERVATION_DAO_H
+#ifndef RESERVATION_DAO_H
 #define RESERVATION_DAO_H
 
 #include "models.h"
@@ -16,6 +16,8 @@ public:
     int insert(const Reservation& res);
     bool updateStatus(int reservationId, ReservationStatus status);
     bool cancelReservation(int reservationId);
+    bool deleteReservation(int id);
+    int deleteAllCancelled();
     int count() const;
 private:
     Reservation resFromQuery(class QSqlQuery& query) const;

@@ -192,6 +192,89 @@ bool DatabaseManager::createTables() {
     query.exec("CREATE INDEX IF NOT EXISTS idx_reserve_user ON reservations(user_id)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_reserve_book ON reservations(book_id)");
     query.exec("CREATE INDEX IF NOT EXISTS idx_logs_action ON logs(action)");
+    // --- 插入预设分类 ---
+    // 检查根分类是否已存在（按名称检查预设的8个根分类）
+    {
+        QSqlQuery checkRoot(db);
+        checkRoot.exec("SELECT COUNT(*) FROM categories WHERE parent_id = -1 AND name IN ('文学','科学','技术','艺术','历史','哲学','教育','经济')");
+        bool presetsExist = checkRoot.next() && checkRoot.value(0).toInt() >= 8;
+
+        if (!presetsExist) {
+// 清理旧mock数据（如果有）
+            QSqlQuery clean(db);
+            clean.exec("PRAGMA foreign_keys=OFF");
+            clean.exec("DELETE FROM categories");
+            clean.exec("UPDATE books SET category_id = -1, category_path = '' WHERE category_id > 0");
+            clean.exec("PRAGMA foreign_keys=ON");
+
+            auto insertRoot = [&](const QString& name) -> int {
+                QSqlQuery q(db);
+                q.prepare("INSERT INTO categories (parent_id, name, path, level) VALUES (-1, ?, ?, 0)");
+                q.addBindValue(name);
+                q.addBindValue(name);
+                if (!q.exec()) {
+                    qWarning() << "Failed to insert root category:" << name << q.lastError().text();
+                    return -1;
+                }
+                return q.lastInsertId().toInt();
+            };
+
+            auto insertChild = [&](const QString& parentName, const QString& name) -> int {
+                QSqlQuery q(db);
+                q.prepare("INSERT INTO categories (parent_id, name, path, level) VALUES ((SELECT id FROM categories WHERE name=? AND parent_id=-1), ?, ?, 1)");
+                q.addBindValue(parentName);
+                q.addBindValue(name);
+                q.addBindValue(parentName + "/" + name);
+                if (!q.exec()) {
+                    qWarning() << "Failed to insert child category:" << name << q.lastError().text();
+                    return -1;
+                }
+                return q.lastInsertId().toInt();
+            };
+
+            insertRoot("文学");
+            insertRoot("科学");
+            insertRoot("技术");
+            insertRoot("艺术");
+            insertRoot("历史");
+            insertRoot("哲学");
+            insertRoot("教育");
+            insertRoot("经济");
+
+            insertChild("文学", "小说");
+            insertChild("文学", "散文");
+            insertChild("文学", "诗歌");
+            insertChild("科学", "物理");
+            insertChild("科学", "化学");
+            insertChild("科学", "生物");
+            insertChild("技术", "计算机");
+            insertChild("技术", "电子");
+            insertChild("技术", "机械");
+            insertChild("艺术", "绘画");
+            insertChild("艺术", "音乐");
+            insertChild("艺术", "电影");
+        }
+    }
+
+    // 修复旧版简介模板 → 替换为有意义的简介
+    {
+        QSqlQuery fixDesc(db);
+        fixDesc.exec(
+            "UPDATE books SET description = "
+            "  (SELECT '《' || b2.title || '》是' || "
+            "    COALESCE(NULLIF(b2.category_path, ''), '经典') || "
+            "    '领域不可多得的一本好书，值得细细品读。' "
+            "   FROM books b2 WHERE b2.id = books.id) "
+            "WHERE description LIKE '%相关领域%'"       // 最早的硬编码模板
+            "   OR description LIKE '%经典著作，由%编写%出版%'"  // 最早的硬编码模板
+            "   OR description LIKE '%经典读物，系统地介绍了相关理论%'"   // 随机模板1
+            "   OR description LIKE '%深入浅出地讲解了%'"              // 随机模板2
+            "   OR description LIKE '%执笔的这部%'"                    // 随机模板3
+            "   OR description LIKE '%初学者还是资深从业者%'"           // 随机模板4
+            "   OR description LIKE '%凭借扎实的内容和清晰的脉络%'"     // 随机模板5
+            "   OR description LIKE '%带你走进%的世界%'"               // 随机模板6
+        );
+    }
 
     return true;
 }

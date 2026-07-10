@@ -3,31 +3,29 @@
 
 #include <QString>
 
-// ĞÅÓÃ»ı·ÖÒıÇæ
+// ä¿¡ç”¨ç§¯åˆ†å¼•æ“
 class CreditEngine {
 public:
     CreditEngine() = default;
 
-    // ³õÊ¼ĞÅÓÃ·Ö
+    // åˆå§‹ä¿¡ç”¨åˆ†
     static constexpr int INITIAL_SCORE = 100;
-    // ÓâÆÚ¿Û·Ö
+    // é€¾æœŸæ‰£åˆ†
     static constexpr int OVERDUE_PENALTY = 10;
-    // °´Ê±¹é»¹¼Ó·Ö
+    // æŒ‰æ—¶å½’è¿˜åŠ åˆ†
     static constexpr int ONTIME_REWARD = 5;
-    // ½ûÖ¹½èÔÄãĞÖµ
+    // ç¦æ­¢å€Ÿé˜…é˜ˆå€¼
     static constexpr int BLOCK_THRESHOLD = 60;
-    // ×î¸ß·Ö
+    // æœ€é«˜åˆ†
     static constexpr int MAX_SCORE = 100;
 
-    // ¼ÆËãĞÂµÄĞÅÓÃ·Ö
+    // è®¡ç®—æ–°çš„ä¿¡ç”¨åˆ†
     int deduct(int currentScore, int penalty = OVERDUE_PENALTY) const;
     int reward(int currentScore, int bonus = ONTIME_REWARD) const;
 
-    // ÊÇ·ñ±»½ûÖ¹½èÔÄ
+    // æ˜¯å¦è¢«ç¦æ­¢å€Ÿé˜…
     bool isBlocked(int score) const;
 
-    // »ñÈ¡µÈ¼¶ÃèÊö
-    QString getLevelDescription(int score) const;
 };
 
 #endif

@@ -1,4 +1,4 @@
-﻿#include "bridge/api_bridge.h"
+#include "bridge/api_bridge.h"
 #include <QDebug>
 #include <QSqlQuery>
 
@@ -115,11 +115,11 @@ void ApiBridge::rebuildIndex() {
 Result ApiBridge::login(const QString& username, const QString& password) {
     Result result = m_authService->login(username, password);
     if (result.success) {
-        emit loggedIn(m_authService->currentUser());
+        m_currentUser = m_authService->currentUser();
+        emit loggedIn(m_currentUser);
     }
     return result;
 }
-
 Result ApiBridge::registerUser(const QString& username, const QString& password,
                                 const QString& displayName, UserRole role) {
     return m_authService->registerUser(username, password, displayName, role);
@@ -128,6 +128,7 @@ Result ApiBridge::registerUser(const QString& username, const QString& password,
 void ApiBridge::logout() {
     m_authService->logout();
     emit loggedOut();
+    m_currentUser = User{};
 }
 
 // ============ 妫€绱?============
@@ -158,6 +159,7 @@ Result ApiBridge::borrowBook(int userId, int bookId) {
         // 鏇存柊绱㈠紩
         auto book = m_bookService->getBookById(bookId);
         m_searchIndex->updateBook(book);
+        rebuildIndex();  // 同时也重建推荐矩阵
         emit borrowSucceeded(result.message);
     }
     return result;
@@ -184,6 +186,7 @@ Result ApiBridge::returnBook(int recordId) {
         if (record.bookId > 0) {
             auto book = m_bookService->getBookById(record.bookId);
             m_searchIndex->updateBook(book);
+            rebuildIndex();  // 同时也重建推荐矩阵
         }
         // 妫€鏌ラ绾﹂槦鍒?
         if (record.bookId > 0) {
@@ -215,9 +218,16 @@ Result ApiBridge::reserveBook(int userId, int bookId) {
     return m_reservationService->reserveBook(userId, bookId);
 }
 
+Result ApiBridge::deleteReservationRecord(int reservationId) {
+    return m_reservationService->deleteReservation(reservationId);
+}
 Result ApiBridge::cancelReservation(int reservationId) {
     return m_reservationService->cancelReservation(reservationId);
 }
+int ApiBridge::deleteAllCancelledRecords() {
+    return m_reservationService->deleteAllCancelled();
+}
+
 
 QVector<Reservation> ApiBridge::getMyReservations(int userId) const {
     return m_reservationService->getUserReservations(userId);
@@ -351,6 +361,10 @@ Statistics ApiBridge::getStatistics() {
     return stats;
 }
 
+QVector<Book> ApiBridge::getBooksByCategory(int categoryId) const {
+    return m_bookService->getBooksByCategory(categoryId);
+}
+
 QVector<Category> ApiBridge::getAllCategories() const {
     return m_categoryTree ? m_categoryTree->allCategories() : QVector<Category>();
 }
@@ -370,5 +384,3 @@ QSet<int> ApiBridge::getDescendantCategoryIds(int categoryId) const {
 QVector<LogEntry> ApiBridge::getRecentLogs() const {
     return m_logService ? m_logService->getRecentLogs() : QVector<LogEntry>();
 }
-
-

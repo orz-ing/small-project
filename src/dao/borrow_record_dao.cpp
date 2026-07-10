@@ -1,4 +1,4 @@
-﻿#include "borrow_record_dao.h"
+#include "borrow_record_dao.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
@@ -95,7 +95,7 @@ int BorrowRecordDAO::insert(const BorrowRecord& record) {
     QSqlQuery query(m_db);
     query.prepare(
         "INSERT INTO borrow_records (user_id, book_id, book_title, book_isbn, "
-        "borrow_date, due_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          "borrow_date, due_date, return_date, fine, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     query.addBindValue(record.userId);
     query.addBindValue(record.bookId);
@@ -103,6 +103,8 @@ int BorrowRecordDAO::insert(const BorrowRecord& record) {
     query.addBindValue(record.bookIsbn);
     query.addBindValue(record.borrowDate.toString(Qt::ISODate));
     query.addBindValue(record.dueDate.toString(Qt::ISODate));
+    query.addBindValue(record.returnDate.isValid() ? record.returnDate.toString(Qt::ISODate) : QVariant());
+    query.addBindValue(record.fine);
     query.addBindValue(static_cast<int>(BorrowStatus::Borrowing));
     if (query.exec()) return query.lastInsertId().toInt();
     qWarning() << "Insert borrow record failed:" << query.lastError().text();

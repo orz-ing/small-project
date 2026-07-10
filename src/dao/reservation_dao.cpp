@@ -1,10 +1,16 @@
-﻿#include "reservation_dao.h"
+#include "reservation_dao.h"
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QVariant>
-#include <QDebug>
 
 ReservationDAO::ReservationDAO(QSqlDatabase db) : m_db(db) {}
+
+QVector<Reservation> ReservationDAO::getAll() const {
+    QVector<Reservation> result;
+    QSqlQuery query(m_db);
+    query.exec("SELECT * FROM reservations ORDER BY id DESC");
+    while (query.next()) result.append(resFromQuery(query));
+    return result;
+}
 
 Reservation ReservationDAO::resFromQuery(QSqlQuery& query) const {
     Reservation r;
@@ -17,22 +23,6 @@ Reservation ReservationDAO::resFromQuery(QSqlQuery& query) const {
     r.priority = query.value("priority").toInt();
     r.status = static_cast<ReservationStatus>(query.value("status").toInt());
     return r;
-}
-
-QVector<Reservation> ReservationDAO::getAll() const {
-    QVector<Reservation> result;
-    QSqlQuery query(m_db);
-    query.exec("SELECT * FROM reservations ORDER BY id DESC");
-    while (query.next()) result.append(resFromQuery(query));
-    return result;
-}
-
-Reservation ReservationDAO::getById(int id) const {
-    QSqlQuery query(m_db);
-    query.prepare("SELECT * FROM reservations WHERE id = ?");
-    query.addBindValue(id);
-    if (query.exec() && query.next()) return resFromQuery(query);
-    return Reservation{};
 }
 
 QVector<Reservation> ReservationDAO::getByUser(int userId) const {
@@ -90,6 +80,20 @@ bool ReservationDAO::updateStatus(int reservationId, ReservationStatus status) {
 
 bool ReservationDAO::cancelReservation(int reservationId) {
     return updateStatus(reservationId, ReservationStatus::Cancelled);
+}
+
+bool ReservationDAO::deleteReservation(int id) {
+    QSqlQuery query(m_db);
+    query.prepare("DELETE FROM reservations WHERE id = ?");
+    query.addBindValue(id);
+    return query.exec();
+}
+
+int ReservationDAO::deleteAllCancelled() {
+    QSqlQuery query(m_db);
+    query.exec("DELETE FROM reservations WHERE status = 2");
+    int rows = query.numRowsAffected();
+    return rows > 0 ? rows : 0;
 }
 
 int ReservationDAO::count() const {

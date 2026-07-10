@@ -1,22 +1,24 @@
-﻿#ifndef API_BRIDGE_H
+#ifndef API_BRIDGE_H
 #define API_BRIDGE_H
 
+#include <QObject>
+#include <QSqlDatabase>
+#include <QVector>
+#include <QSet>
+
 #include "models.h"
+#include "service/reservation_service.h"
+#include "service/overdue_scanner.h"
 #include "service/auth_service.h"
 #include "service/book_service.h"
 #include "service/borrow_service.h"
-#include "service/reservation_service.h"
-#include "service/overdue_scanner.h"
 #include "service/log_service.h"
 #include "engine/search_index.h"
 #include "engine/recommend_engine.h"
 #include "engine/category_tree.h"
 #include "engine/credit_engine.h"
 #include "dao/database_manager.h"
-#include <QObject>
-#include <QSet>
 
-// API桥接层：前端唯一入口，单例模式
 class ApiBridge : public QObject {
     Q_OBJECT
 public:
@@ -24,65 +26,76 @@ public:
 
     bool initialize(const QString& dbPath = "library.db");
     void shutdown();
+    bool isInitialized() const { return m_initialized; }
 
-    // ============ 认证 ============
-    Result login(const QString& username, const QString& password);
+    // Auth
     Result registerUser(const QString& username, const QString& password,
-                        const QString& displayName, UserRole role = UserRole::Reader);
+                        const QString& displayName = "", UserRole role = UserRole::Reader);
+    Result login(const QString& username, const QString& password);
+    User currentUser() const { return m_currentUser; }
     void logout();
-    User currentUser() const { return m_authService ? m_authService->currentUser() : User{}; }
-    bool isLoggedIn() const { return m_authService && m_authService->isLoggedIn(); }
-    bool isAdmin() const { return m_authService && m_authService->isAdmin(); }
+    bool isAdmin() const { return m_currentUser.role == UserRole::Admin; }
 
-    // ============ 检索 ============
-    QVector<Book> searchBooks(const QString& keywords, int topN = 20);
+    // Books
+    QVector<Book> getAllBooks() const;
     Book getBookDetail(int bookId);
-    QVector<Book> getRecommendations(int userId, int topN = 10);
-    QVector<Book> getHotBooks(int topN = 10);
+    Result addBook(const Book& book);
+    Result updateBook(const Book& book);
+    Result deleteBook(int bookId);
+    QVector<Book> searchBooks(const QString& keywords, int topN = 10);
+    QVector<Book> getBooksByCategory(int categoryId) const;
 
-    // ============ 借阅 ============
+    // Borrow
     Result borrowBook(int userId, int bookId);
     Result returnBook(int recordId);
     Result renewBook(int recordId);
     QVector<BorrowRecord> getMyBorrowRecords(int userId) const;
     QVector<BorrowRecord> getMyActiveRecords(int userId) const;
+    QVector<BorrowRecord> getAllBorrowRecords() const;
+    int getBorrowCount(int bookId) const;
 
-    // ============ 预约 ============
+    // Reservation
     Result reserveBook(int userId, int bookId);
     Result cancelReservation(int reservationId);
+    Result deleteReservationRecord(int reservationId);
+    int deleteAllCancelledRecords();
     QVector<Reservation> getMyReservations(int userId) const;
 
-    // ============ 管理 ============
-    Result addBook(const Book& book);
-    Result updateBook(const Book& book);
-    Result deleteBook(int bookId);
-    QVector<Book> getAllBooks() const;
+    // Recommend
+    QVector<Book> getRecommendations(int userId, int topN = 10);
+    QVector<Book> getHotBooks(int topN = 10);
+    void rebuildIndex();
+
+    // Admin
     QVector<User> getAllUsers() const;
+    Result updateUser(const User& user);
+    Result deleteUser(int userId);
+    bool checkUserBorrowing(int userId) const;
     Result disableUser(int userId, bool disabled);
 
-    // ============ 统计 ============
+    // Statistics
     Statistics getStatistics();
-    QVector<Category> getAllCategories() const;
 
-    // ============ 分类 ============
+    // Categories
+    QVector<Category> getAllCategories() const;
     QVector<Category> getCategoryChildren(int parentId) const;
     QVector<Category> getRootCategories() const;
     QSet<int> getDescendantCategoryIds(int categoryId) const;
 
-    // ============ 日志 ============
+    // Logs
     QVector<LogEntry> getRecentLogs() const;
 
-    // ============ 数据刷新 ============
-    void rebuildIndex();
+    // Overdue scan
+    void scanOverdue();
 
 signals:
     void loggedIn(const User& user);
     void loggedOut();
-    void borrowSucceeded(const QString& message);
-    void returnSucceeded(const QString& message);
     void bookAdded(const Book& book);
     void bookUpdated(const Book& book);
     void bookDeleted(int bookId);
+    void borrowSucceeded(const QString& message);
+    void returnSucceeded(const QString& message);
     void overdueFound(int userId, int recordId, double fine);
 
 private:
@@ -90,19 +103,20 @@ private:
     ~ApiBridge() override;
     ApiBridge(const ApiBridge&) = delete;
     ApiBridge& operator=(const ApiBridge&) = delete;
+    void initServices(const QSqlDatabase& db);
 
+    bool m_initialized = false;
+    User m_currentUser;
+    SearchIndex* m_searchIndex = nullptr;
+    CreditEngine* m_creditEngine = nullptr;
+    RecommendEngine* m_recommendEngine = nullptr;
+    CategoryTree* m_categoryTree = nullptr;
     AuthService* m_authService = nullptr;
     BookService* m_bookService = nullptr;
     BorrowService* m_borrowService = nullptr;
     ReservationService* m_reservationService = nullptr;
     OverdueScanner* m_overdueScanner = nullptr;
     LogService* m_logService = nullptr;
-    SearchIndex* m_searchIndex = nullptr;
-    RecommendEngine* m_recommendEngine = nullptr;
-    CategoryTree* m_categoryTree = nullptr;
-    CreditEngine* m_creditEngine = nullptr;
-    bool m_initialized = false;
 };
 
-#endif // API_BRIDGE_H
-
+#endif
